@@ -102,3 +102,19 @@ base` en geen qaida. De motor haalt bij elke stap de basisvragen van het schema
 op plus de vragen die het actieve profiel toevoegt; in fase 1 zijn dat er nul.
 Het toevoegen van de masalik al-illah-vragen aan het analogieschema is later een
 kwestie van rijen invoegen, niet van migreren.
+
+## Toegevoegd buiten de veldenlijst van §5
+
+Twee velden staan in het model die de specificatie niet noemt. Ze zijn nodig voor
+gedrag dat de specificatie wél eist, en ze staan hier zodat ze te betwisten zijn.
+
+* `premise.asserts_claim`. Zonder deze schakel loopt de zwakste-schakelregel niet
+  door over de claimgrens heen, terwijl §3 een premisse toestaat die zelf een
+  claim is. Zie `docs/conventies-fase1.md` §17.
+* `assessment.use_form`. Draagt de gebruiksvorm uit §4.4 zodat aanvallen en
+  verdedigen later zonder migratie passen.
+
+Verder is de lookup `relation_type` uitgebreid met `relies_on`, voor de
+verwijzing van een interpretatie naar een qaida (§4.3: interpretaties verwijzen,
+ze dupliceren niet). Omdat relatiesoorten data zijn, is dat een rij en geen
+schemawijziging.

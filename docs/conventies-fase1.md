@@ -214,3 +214,54 @@ meegewogen.
 Ondoorzichtige lading van de indiener, zoals `provenance.detail` en
 `instrument_output`, gaat wél mee. Zij reist als JSON-tekst door de rapportage,
 zodat zij bewaard blijft zonder dat er een getal in de uitvoer belandt.
+
+## 17. Waarom `asserts_claim` een veld is en geen relatierij
+
+Randvoorwaarde §2.10 eist één generieke relatietabel voor relaties **tussen
+regels**: afhangen van, aanvallen, steunen. Die tabel bestaat en draagt een
+`relation_type`; zij is leeg tot fase 2 de qawa'id vult.
+
+`premise.asserts_claim` valt daar niet onder. Het is geen relatie tussen regels
+maar een schakel in de argumentstructuur, net als `inference.from[]` en
+`inference.to` uit §5.8, die de specificatie zelf als velden modelleert. Het veld
+staat niet in de veldenlijst van §5.6; het is toegevoegd omdat §3 een premisse
+toestaat die zelf een claim is, en zonder deze schakel loopt de zwakste-schakel
+regel niet door over de claimgrens heen.
+
+Wie het anders wil, kan het als een rij in `edge` modelleren zonder dat de motor
+verandert. De keuze staat hier zodat zij te betwisten is.
+
+## 18. Wat de motor wél in code heeft staan
+
+Drie dingen sturen het oordeel en staan niet als record met eigen bewijs:
+
+1. **De kernregels zelf zijn records, maar hun toepassing is code.** Dat het
+   minimum de zwakste schakel is, staat in `berekening.py`. De regel staat als
+   record, met haar zelfvernietigingsargument; de rekenkundige uitwerking ervan
+   is de motor. Dat is het onderscheid dat §2.2 maakt tussen een inhoudelijke
+   regel en de motor die regels toepast.
+2. **De formele logica.** De waarderingstabel en de syllogistiek staan in code.
+   Volgens het kerncriterium van §4.2 horen zij daar: het onderscheid tussen
+   geldige vorm en ware premisse is niet te ontkennen zonder de ontkenning zelf
+   onmogelijk te maken. De keuzes binnen die logica die wél ontkenbaar zijn, met
+   name de existentiële import, staan in §3 van dit document en niet stilzwijgend
+   in de code.
+3. **De interim-regel bij een gefaalde kritische vraag** (§7). Die is
+   nadrukkelijk tijdelijk en noemt zichzelf zo in de uitvoer.
+
+Alles wat het oordeel verder stuurt is data: de schaal en haar ordening, de
+premissetypen, de schema's, de kritische vragen, de koppeling van een
+bevindingssoort aan haar kernregel, en straks de qawa'id.
+
+De motor noemt wel een handvol vocabulairesleutels bij naam, zoals `failed`,
+`valid` en `invalid`. Zij controleert bij het opstarten dat die sleutels bestaan
+en actief zijn, zodat het hernoemen van zo'n rij een melding oplevert in plaats
+van een regel die stilletjes ophoudt te werken.
+
+## 19. Wat fase 1 aanneemt en niet gebruikt
+
+Deze velden worden opgeslagen maar sturen het oordeel nog niet:
+`citation.verification_status` (vanaf fase 3), `premise.status` met haar
+tegenstelling (fase 4), `instrument_output` (fase 3), en `confirmed` op een
+premisse of inferentie (fase 5, met de bevestigingspoorten uit B4). Dat staat bij
+elk van hen in de rapportage, zodat niemand denkt dat ze zijn meegewogen.
