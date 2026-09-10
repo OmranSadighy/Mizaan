@@ -37,6 +37,9 @@ python3 -m venv .venv
 
 # de nultest en de kalibratietest draaien
 .venv/bin/python -m pytest -q
+
+# de uitslag per acceptatiecriterium tonen, met de werkelijke uitvoer erbij
+.venv/bin/python scripts/nultest_uitslag.py
 ```
 
 Vraag je om één samenvattend cijfer, dan weigert het instrument met uitleg:
@@ -56,6 +59,7 @@ Vraag je om één samenvattend cijfer, dan weigert het instrument met uitleg:
 | `src/bewijsmotor/contract.py` | Het uitvoercontract, waaronder de weigering om één getal te produceren. |
 | `voorbeelden/` | De invoer voor de nultest en de kalibratietest. |
 | `docs/` | De keuzes die het oordeel beïnvloeden, en wat is aangenomen. |
+| `scripts/` | `nultest_uitslag.py` toont per acceptatiecriterium wat de motor werkelijk teruggeeft. |
 
 ## Uitgangspunten die het schema afdwingt
 
