@@ -193,7 +193,7 @@ def laad_profiel(sessie: Session, data: dict[str, Any]) -> Profile:
         type_set_exhaustive=bool(data.get("type_set_exhaustive", False)),
         figurative_reading_permitted=data.get("figurative_reading_permitted"),
         conflict_order=data.get("conflict_order", []),
-        burden_allocation=data.get("burden_allocation", "claimant"),
+        burden_allocation=_verplicht(data, "burden_allocation"),
     )
     sessie.add(profiel)
     sessie.flush()
@@ -211,6 +211,22 @@ def laad_profiel(sessie: Session, data: dict[str, Any]) -> Profile:
         sessie.add(CompetenceLevel(profile_id=profiel.id, name=niveau["name"]))
     sessie.flush()
     return profiel
+
+
+def _verplicht(data: dict[str, Any], veld: str) -> Any:
+    """Lees een profielveld dat het profiel zelf moet noemen.
+
+    B1 noemt een standaardwaarde voor de bewijslast. Die standaard hoort in het
+    profielrecord te staan, niet in de laadcode: anders zou een profiel dat er
+    niets over zegt stilzwijgend een standpunt innemen dat nergens is vastgelegd.
+    """
+    waarde = data.get(veld)
+    if waarde is None:
+        raise InvoerFout(
+            f"profiel '{data.get('name')}' noemt '{veld}' niet. Dit veld stuurt het oordeel en "
+            "hoort in het profielrecord te staan; de laadcode kiest er geen waarde bij."
+        )
+    return waarde
 
 
 def haal_profiel(sessie: Session, naam: str, versie: str | None = None) -> Profile:

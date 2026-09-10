@@ -166,7 +166,13 @@ def zoek(
                 "strength",
                 uitkomst.label,
                 lambda waarde, r=inferentie_ref: Overschrijving(inferentie={r: waarde}),
-                "als deze redeneerstap sterker wordt, kantelt het eindoordeel",
+                (
+                    "de vorm van deze stap is ongeldig; wordt zij sluitend gemaakt, "
+                    "bijvoorbeeld met een van de voorgestelde verzwegen premissen, dan "
+                    "kantelt het eindoordeel"
+                    if uitkomst.vormstatus == "invalid"
+                    else "als deze redeneerstap sterker wordt, kantelt het eindoordeel"
+                ),
                 "als deze redeneerstap zwakker wordt, kantelt het eindoordeel",
             )
 

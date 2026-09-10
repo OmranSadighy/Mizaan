@@ -105,6 +105,56 @@ VEREISTE_KERNREGELS = frozenset(
 # fout in de data en geen stilzwijgend genegeerde regel.
 MOTORCAPACITEITEN = frozenset({"form_validity"})
 
+# Vocabulairewaarden waar de motor bij het rekenen op steunt. Ze staan als rij
+# in de database, maar de motor noemt ze bij naam: 'failed' plafonneert het
+# label van een stap, 'valid' en 'invalid' komen uit de vormtoets. Wordt zo'n
+# rij hernoemd of op inactief gezet, dan zou de bijbehorende regel stilzwijgend
+# ophouden te werken. De motor controleert daarom bij het opstarten dat elke
+# sleutel waarop zij steunt bestaat en actief is, en zegt het anders.
+VEREISTE_VOCABULAIREWAARDEN: dict[str, frozenset[str]] = {
+    "critical_question_status": frozenset({"answered", "unanswered", "failed"}),
+    "critical_question_effect": frozenset({"undercut", "undermine", "none"}),
+    "critical_question_origin": frozenset({"base", "profile", "input"}),
+    "form_status": frozenset({"valid", "invalid", "not_testable"}),
+    "fallacy_type": frozenset(
+        {
+            "affirming_the_consequent",
+            "denying_the_antecedent",
+            "undistributed_middle",
+            "circular_reasoning",
+            "invalid_form_unnamed",
+            "contradictory_premises",
+        }
+    ),
+    "unstated_premise_basis": frozenset({"form_completion", "term_coverage"}),
+    "score_source": frozenset({"engine_kernel"}),
+    "proposed_by": frozenset({"engine"}),
+    "tipping_direction": frozenset({"upward", "downward"}),
+    "node_kind": frozenset({"premise", "claim", "inference", "critical_question"}),
+}
+
+# Wat de drogredenscan van fase 1 wél en niet dekt. Een lege lijst bevindingen
+# betekent zonder deze toelichting iets anders dan zij zegt.
+DROGREDENSCAN_FASE1 = {
+    "getoetst": [
+        "bevestigen van het consequens",
+        "ontkennen van het antecedent",
+        "onverdeelde middenterm",
+        "cirkelredenering, zowel in de vorm als in de steunrelatie tussen claims",
+        "elkaar tegensprekende premissen",
+        "overige ongeldige vormen zonder eigen naam",
+    ],
+    "niet_getoetst": [
+        "informele drogredenen zoals stroman, vals dilemma, beroep op onwetendheid en "
+        "beroep op nadelige gevolgen; die vallen vaak samen met een schema waarvan de "
+        "kritische vragen falen en komen in een latere fase",
+    ],
+    "toelichting": (
+        "een lege lijst drogredenen betekent dus: geen van de hierboven getoetste vormen "
+        "aangetroffen, niet dat er geen drogreden in de tekst zit"
+    ),
+}
+
 
 class Motor:
     """De rekenende laag. Leest regels als data, rekent zelf niets inhoudelijks."""
@@ -121,6 +171,16 @@ class Motor:
             }
             for rij in sessie.execute(select(KernelRule)).scalars()
         }
+        for vocabulaire, sleutels in VEREISTE_VOCABULAIREWAARDEN.items():
+            ontbreekt = sleutels - self.vocab.waarden.get(vocabulaire, frozenset())
+            if ontbreekt:
+                raise OnbekendeLookupwaarde(
+                    f"de motor steunt op de waarden {', '.join(sorted(ontbreekt))} in de lookup "
+                    f"'{vocabulaire}', maar die bestaan daar niet of staan op inactief. "
+                    "Regels zijn data, maar de motor noemt deze waarden bij naam; zou zij ze "
+                    "stil missen, dan zou de bijbehorende regel zonder melding ophouden te "
+                    "werken."
+                )
         ontbrekend = VEREISTE_KERNREGELS - set(self.kernregels)
         if ontbrekend:
             raise OntbrekendeKern(
@@ -428,6 +488,7 @@ class Motor:
                 "regelset": regelset_versie(self.sessie),
             },
             "voorbehouden": list(VOORBEHOUDEN_FASE1),
+            "drogredenscan": DROGREDENSCAN_FASE1,
         }
 
         beoordelingen = []

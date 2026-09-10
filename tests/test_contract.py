@@ -118,3 +118,32 @@ def test_de_uitvoer_noemt_wat_fase_1_niet_doet(motor):
     assert "geen personen" in voorbehouden
     assert "taalmodel" in voorbehouden
     assert uitvoer["voortgebracht_door"] == "motor zonder taalmodel"
+
+
+def test_de_drogredenscan_zegt_wat_zij_wel_en_niet_dekt(motor):
+    """Een lege lijst bevindingen betekent zonder toelichting iets anders dan zij zegt."""
+    uitvoer = motor.beoordeel(lees_voorbeeld("kalibratie_gebed.json"), actor="contract")
+    scan = uitvoer["beoordelingen"][0]["fallacy_scan"]
+    assert scan["getoetst"]
+    assert scan["niet_getoetst"]
+    assert "niet dat er geen drogreden in de tekst zit" in scan["toelichting"]
+
+
+def test_niet_verwerkte_invoervelden_worden_geweigerd(motor):
+    """Stil weggooien wekt de indruk dat een gegeven is meegewogen."""
+    from bewijsmotor.fouten import InvoerFout, OnbekendeLookupwaarde
+
+    invoer = lees_voorbeeld("nultest_zwakste_schakel.json")
+    invoer["inferences"][0]["interpretation_ref"] = "int1"
+    with pytest.raises(InvoerFout, match="interpretatielaag draait pas in fase 4"):
+        motor.beoordeel(invoer, actor="contract")
+
+    invoer = lees_voorbeeld("nultest_zwakste_schakel.json")
+    invoer["premises"][0]["provenance"]["corpus_document_ref"] = "doc1"
+    with pytest.raises(InvoerFout, match="corpus is in deze fase leeg"):
+        motor.beoordeel(invoer, actor="contract")
+
+    invoer = lees_voorbeeld("nultest_zwakste_schakel.json")
+    invoer["competence_level"] = "leek"
+    with pytest.raises(OnbekendeLookupwaarde, match="bestaat niet in profiel"):
+        motor.beoordeel(invoer, actor="contract")

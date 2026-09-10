@@ -319,6 +319,7 @@ def bouw_beoordeling(
         "alle_zwakste_elementen": [_bijdrage(b, schaal) for b in claimuitkomst.alle_zwakste],
         "open_critical_questions": open_vragen,
         "answered_critical_questions": beantwoorde_vragen,
+        "fallacy_scan": metadata["drogredenscan"],
         "fallacies": [
             {
                 "soort": d.soort,

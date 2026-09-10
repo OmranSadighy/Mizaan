@@ -127,3 +127,56 @@ def test_een_onbekende_waarde_wordt_geweigerd_met_uitleg(motor):
     assert "gedroomd" in melding
     assert "provenance_kind" in melding
     assert "Voeg een rij toe" in melding
+
+
+def test_hernoemen_van_een_sleutel_waarop_de_motor_steunt_wordt_gemeld(sessie):
+    """Regels zijn data, maar de motor noemt sommige waarden bij naam.
+
+    Wordt zo'n rij hernoemd of op inactief gezet, dan zou de bijbehorende regel
+    stilzwijgend ophouden te werken. Dat hoort een melding te zijn.
+    """
+    sessie.execute(
+        LOOKUP_KLASSEN["critical_question_status"]
+        .__table__.update()
+        .where(LOOKUP_KLASSEN["critical_question_status"].key == "failed")
+        .values(actief=False)
+    )
+    sessie.flush()
+    with pytest.raises(OnbekendeLookupwaarde, match="failed"):
+        Motor(sessie)
+    sessie.rollback()
+
+
+def test_profiel_zonder_bewijslastveld_wordt_geweigerd(sessie):
+    """B1 noemt een standaard, maar die hoort in het profielrecord te staan."""
+    from bewijsmotor.db.registry import laad_profiel
+    from bewijsmotor.fouten import InvoerFout
+
+    with pytest.raises(InvoerFout, match="burden_allocation"):
+        laad_profiel(
+            sessie,
+            {
+                "name": "zonder_bewijslast",
+                "version": "0.1.0",
+                "competence_levels": [{"name": "unrestricted"}],
+            },
+        )
+    sessie.rollback()
+
+
+def test_profiel_met_qawaid_wordt_niet_stil_genegeerd(sessie):
+    from bewijsmotor.db.registry import laad_profiel
+    from bewijsmotor.fouten import InvoerFout
+
+    with pytest.raises(InvoerFout, match="regellaag wordt in fase 2 gebouwd"):
+        laad_profiel(
+            sessie,
+            {
+                "name": "met_qawaid",
+                "version": "0.1.0",
+                "burden_allocation": "claimant",
+                "qaida_set": ["een_regel"],
+                "competence_levels": [{"name": "unrestricted"}],
+            },
+        )
+    sessie.rollback()

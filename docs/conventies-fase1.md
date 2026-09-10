@@ -41,12 +41,22 @@ Andere gevallen niet. Wie de klassieke lezing mét existentiële import wil, moe
 dat als expliciete regel toevoegen; hij zit niet stilzwijgend in de motor.
 
 De geldigheid van categorische syllogismen wordt bepaald met de klassieke
-distributieregels: drie termen, middenterm minstens één keer gedistribueerd,
-geen term gedistribueerd in de conclusie die dat niet is in zijn premisse, niet
-twee ontkennende premissen, en ontkennende premisse precies dan als de conclusie
-ontkennend is. Propositionele stappen worden getoetst met een volledige
-waarderingstabel, niet met patroonherkenning; patroonherkenning dient alleen om
-een gevonden ongeldigheid bij naam te noemen.
+distributieregels. De structuurtoets gaat verder dan het tellen van drie
+verschillende termen: elke conclusieterm moet in precies één premisse staan en
+de middenterm in beide. Zonder die eis laat de toets een conclusie door met een
+term waar de premissen niets over zeggen, en dat is zekerheid uit niets. De toets
+levert precies de vijftien stemmingen op die onder de moderne lezing geldig zijn;
+`tests/test_eigenschappen.py` rekent dat na.
+
+Een stap met meer of minder dan twee categorische premissen heet **niet
+toetsbaar**, niet ongeldig. Een sluitende sorites van drie premissen is geldig,
+maar niet met deze toets vast te stellen, en de motor bewijst geen gat.
+
+Propositionele stappen worden getoetst met een volledige waarderingstabel, niet
+met patroonherkenning; patroonherkenning dient alleen om een gevonden
+ongeldigheid bij naam te noemen, en één stap krijgt hooguit één naam. Dubbele
+ontkenningen worden bij het normaliseren weggewerkt, anders herkent de motor de
+benoemde drogredenen niet meer.
 
 ## 4. Onverenigbare premissen maken een stap niet geldig
 
@@ -70,7 +80,12 @@ Er zijn er twee:
 * **Termdekking.** Een term uit de conclusie komt in geen enkele premisse voor.
   Dit is nadrukkelijk een heuristiek: de verbinding kan ook in de woorden zelf
   besloten liggen. De toets draait alleen als de vorm niet toetsbaar is, zodat
-  dezelfde tekortkoming niet twee keer gemeld wordt.
+  dezelfde tekortkoming niet twee keer gemeld wordt en zodat zij niet losgaat op
+  een stap die formeel sluit.
+
+De zoektocht naar vormaanvullingen is begrensd. Boven een bepaald aantal losse
+termen wordt zij overgeslagen, en dat staat in de rationale. Een lege lijst
+kandidaten betekent daar dus niet "er is niets gevonden".
 
 Een voorstel krijgt `proposed_by = engine` en `confirmed = false`, en telt niet
 mee in de sterkte tot het bevestigd en van een bron voorzien is.
@@ -143,10 +158,20 @@ ontkenning van een vaststelling. Voor een premisse zonder bron is het kantelpunt
 
 Twee toetsen. Op vormniveau: de conclusie komt letterlijk als premisse voor. Op
 graafniveau: de steun voor een claim komt langs haar eigen premissen weer bij
-zichzelf uit, via premissen die een andere claim beweren. Claims in een
-steunkring worden niet doorgerekend; ze krijgen `undetermined` en
-`insufficient_evidence`, en elke claim in de kring meldt dat in haar eigen
-rapport.
+zichzelf uit, via premissen die een andere claim beweren.
+
+De graaftoets gebruikt sterk samenhangende componenten (Tarjan). Een eenvoudige
+diepteweergave met een "al bezocht"-markering is niet genoeg: die vindt per
+zoektocht wel een kring, maar mist knopen die alleen via een al afgeronde tak in
+een kring liggen. Voor deze motor is dat geen detail, want een gemiste kring
+betekent dat een claim die op zichzelf steunt een positief label krijgt.
+
+Steunkringen zijn een eigenschap van de ontleding, niet van de
+zekerheidsberekening. Ze worden in stap 1 bepaald, zodat stap 7 ze kan gebruiken
+zonder de uitkomst van stap 10 te raadplegen (B2). Claims in een steunkring
+worden niet doorgerekend; ze krijgen `undetermined` en `insufficient_evidence`,
+en elke claim in de kring meldt dat in haar eigen rapport. Een claim die op een
+kring steunt, ziet die kring onder `steunkring.kringen_in_de_keten`.
 
 ## 13. Herleidbaarheid naar de kernregel
 
@@ -158,6 +183,34 @@ van de auteur uitklapbaar tot de bron, maar ook het redeneren van de motor zelf.
 ## 14. Versies
 
 Elke beoordeling draagt vijf versies: motor, contract, invoerschema, profiel en
-regelset. De regelsetversie is een sha256-vingerafdruk over de kernregels en de
-qawa'id, als tekst. Zij verandert zodra een regel verandert, zodat een
-beoordeling reproduceerbaar aan haar regelset hangt.
+regelset. De regelsetversie is een sha256-vingerafdruk, als tekst.
+
+Zij dekt niet alleen de kernregels en de qawa'id maar ook de lookup-rijen voor
+zover die het rekenen sturen (de rangorde van de sterkteschaal, de koppeling van
+een bevindingssoort aan haar kernregel, of een rij actief is) en de sjablonen van
+de kritische vragen. Dat moet zo: omdat regels data zijn, beweegt het oordeel mee
+met een gewijzigde rij, en een vingerafdruk die zo'n wijziging niet ziet maakt de
+beoordeling onreproduceerbaar. Een gewijzigde vertaling van een label stuurt het
+oordeel niet en raakt de vingerafdruk dus ook niet.
+
+## 15. De kern is dragend
+
+De motor weigert te rekenen als een van de vijf kernregelrecords ontbreekt. Zij
+kiest ook zelf geen kernregel wanneer de lookup er niet een noemt bij een soort
+bevinding: dat is een gat in de data en geen reden om er in code een te kiezen.
+Zonder deze twee zou de bewering dat de kern expliciet en dragend is, niet
+kloppen: de motor zou precies hetzelfde rekenen met een lege kerntabel.
+
+## 16. Weigeren in plaats van stil laten vallen
+
+Fase 1 kent velden die het schema draagt maar de motor nog niet verwerkt. Ze
+worden geweigerd met uitleg, niet aangenomen en weggegooid. Dat geldt voor de
+gebruiksvormen vergelijken, aanvallen en verdedigen, voor een `interpretation_ref`
+op een inferentie, voor een verwijzing naar een corpusdocument, voor qawa'id in
+een profiel, en voor een competentieniveau dat het profiel niet kent. Stil
+weggooien is erger dan weigeren: de indiener denkt dan dat zijn gegeven is
+meegewogen.
+
+Ondoorzichtige lading van de indiener, zoals `provenance.detail` en
+`instrument_output`, gaat wél mee. Zij reist als JSON-tekst door de rapportage,
+zodat zij bewaard blijft zonder dat er een getal in de uitvoer belandt.
