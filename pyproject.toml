@@ -3,19 +3,23 @@ name = "bewijsmotor"
 version = "0.1.0"
 description = "Motor die de kwaliteit van bewijsvoering achter claims beoordeelt. Fase 1: datamodel, kernregels, motor zonder inhoudelijke regels."
 requires-python = ">=3.11"
+# Exacte versies, geen bereiken (§11, fase 1). Een beoordeling moet later te
+# herhalen zijn, en een gewijzigde bibliotheek kan bij dezelfde invoer een
+# andere uitkomst geven. De volledige gesloten set met inhoudshashes staat in
+# requirements.lock; installeer daarmee, niet met een losse pip install.
 dependencies = [
-    "SQLAlchemy>=2.0",
-    "pydantic>=2.0",
+    "SQLAlchemy==2.0.52",
+    "pydantic==2.13.5",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.5"]
+dev = ["pytest==9.1.1", "ruff==0.16.6"]
 
 [project.scripts]
 bewijsmotor = "bewijsmotor.cli:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools==79.0.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]

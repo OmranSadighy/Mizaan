@@ -59,7 +59,7 @@ def _premisse_knoop(
         "bevestigd": premisse.confirmed,
         "herkomst": {
             "kind": premisse.provenance.kind,
-            "corpus_document_ref": premisse.provenance.corpus_document_ref,
+            "retrieval_ref": premisse.provenance.retrieval_ref,
             # Ondoorzichtige lading van de indiener reist als tekst mee. Zo blijft
             # zij bewaard zonder dat er een getal in de uitvoer belandt.
             "detail_json": (
@@ -394,6 +394,7 @@ def bouw_beoordeling(
             if sleutel in kernregels
         ],
         "voorbehouden": metadata["voorbehouden"],
+        "interim_regels": metadata["interim_regels"],
     }
 
 

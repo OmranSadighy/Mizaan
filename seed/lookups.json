@@ -386,32 +386,29 @@
       ]
     },
     "provenance_kind": {
-      "_toelichting": "Herkomst van het materiaal van een premisse (§5.6, verplicht). Onderscheiden van proposed_by: proposed_by zegt wie de structuur voorstelde, provenance zegt waar het materiaal vandaan komt. retrieved_from_corpus draagt de gebruiksvormen aanvallen en verdedigen (§4.4) zonder migratie.",
+      "_toelichting": "Herkomst van het materiaal van een premisse (§5.6, verplicht). Onderscheiden van proposed_by: proposed_by zegt wie de structuur voorstelde, provenance zegt waar het materiaal vandaan komt. Het is de enige manier om later een opgehaalde premisse (functies 3 en 4) te onderscheiden van een aangeleverde. In fase 1 heeft elke premisse user_supplied of engine_inferred.",
       "rijen": [
         {
-          "key": "submitted_by_user",
-          "label_nl": "aangeleverd door gebruiker",
-          "label_en": "submitted by user"
+          "key": "user_supplied",
+          "label_nl": "aangeleverd door de gebruiker",
+          "label_en": "supplied by the user"
         },
         {
-          "key": "retrieved_from_corpus",
-          "label_nl": "opgehaald uit corpus",
-          "label_en": "retrieved from corpus"
+          "key": "engine_retrieved",
+          "label_nl": "opgehaald door het systeem uit een corpus",
+          "label_en": "retrieved by the engine from a corpus",
+          "omschrijving": "vraagt een retrieval_ref naar de zoeksessie (§5.13)"
         },
         {
-          "key": "proposed_by_engine",
-          "label_nl": "voorgesteld door de motor",
-          "label_en": "proposed by engine"
+          "key": "llm_proposed",
+          "label_nl": "voorgesteld door een taalmodel",
+          "label_en": "proposed by a language model"
         },
         {
-          "key": "proposed_by_llm",
-          "label_nl": "voorgesteld door taalmodel",
-          "label_en": "proposed by language model"
-        },
-        {
-          "key": "imported",
-          "label_nl": "geïmporteerd",
-          "label_en": "imported"
+          "key": "engine_inferred",
+          "label_nl": "door de motor afgeleid",
+          "label_en": "inferred by the engine",
+          "omschrijving": "een voorgestelde verzwegen premisse"
         }
       ]
     },
@@ -573,27 +570,33 @@
       ]
     },
     "use_form": {
-      "_toelichting": "De vier gebruiksvormen (§1 en §4.4). Fase 1 bouwt uitsluitend 'assess'; de overige rijen bestaan zodat schema en register ze zonder migratie kunnen opnemen.",
+      "_toelichting": "De vier gebruiksvormen uit §1. De beoordelingsmachine is in alle vier identiek; wat verschilt is de herkomst van de premissen. 'vanaf_fase' zegt vanaf welke fase de motor de vorm werkelijk uitvoert; leeg betekent: niet in dit bouwplan. De motor leest dit veld en weigert een vorm die zij nog niet uitvoert, zodat de fasegrens data is en geen constante in code.",
       "rijen": [
         {
           "key": "assess",
           "label_nl": "toetsen",
-          "label_en": "assess"
+          "label_en": "assess",
+          "rangorde": 1,
+          "omschrijving": "een claim beoordelen; premissen aangeleverd door de gebruiker"
         },
         {
           "key": "compare",
           "label_nl": "vergelijken",
-          "label_en": "compare"
+          "label_en": "compare",
+          "rangorde": 6,
+          "omschrijving": "twee of meer claims naast elkaar; premissen aangeleverd door de gebruiker"
         },
         {
           "key": "attack",
           "label_nl": "aanvallen",
-          "label_en": "attack"
+          "label_en": "attack",
+          "omschrijving": "de sterkste tegenwerping zoeken; premissen door het systeem opgehaald uit een corpus. Niet in dit bouwplan"
         },
         {
           "key": "defend",
           "label_nl": "verdedigen",
-          "label_en": "defend"
+          "label_en": "defend",
+          "omschrijving": "de sterkste onderbouwing zoeken; premissen door het systeem opgehaald uit een corpus. Niet in dit bouwplan"
         }
       ]
     },

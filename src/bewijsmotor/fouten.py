@@ -42,6 +42,10 @@ class OnbepaaldeProfielinstelling(MotorFout):
     """
 
 
+class ConfiguratieFout(MotorFout):
+    """Een omgevingsvariabele is gezet maar niet bruikbaar."""
+
+
 class OntbrekendeKern(MotorFout):
     """De motor steunt op een kernregel die niet in de database staat.
 

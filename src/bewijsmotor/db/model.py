@@ -280,6 +280,8 @@ class QaidaStatusHistory(Base):
     reden = Column(Text, nullable=False)
     actor = Column(Text, nullable=False)
     regelset_versie = Column(String, nullable=True)
+    # §5.12: welke beoordeling de aanleiding was, indien er een was.
+    triggering_assessment_ref = Column(String, ForeignKey("assessment.id"), nullable=True)
     gewijzigd_op = Column(DateTime, nullable=False, default=nu)
 
 
@@ -366,7 +368,8 @@ class Premise(Base):
     # Verplichte herkomst (§5.6).
     provenance = Column(String, _fk("provenance_kind"), nullable=False)
     provenance_detail = Column(JSON, nullable=True)
-    provenance_corpus_document_id = Column(String, ForeignKey("corpus_document.id"), nullable=True)
+    # Alleen gevuld bij provenance = engine_retrieved (§5.6).
+    retrieval_ref = Column(String, ForeignKey("retrieval_session.id"), nullable=True)
 
     form = Column(JSON, nullable=True)
     termen = Column(JSON, nullable=True)
@@ -470,6 +473,8 @@ class SchemeCriticalQuestion(Base):
     vraag_en = Column(Text, nullable=True)
     standaard_effect = Column(String, _fk("critical_question_effect"), nullable=False)
     origin = Column(String, _fk("critical_question_origin"), nullable=False)
+    # §5.8: waaraan een basisvraag is ontleend, bijvoorbeeld walton_2008.
+    herkomst_bron = Column(Text, nullable=True)
     added_by_qaida_id = Column(String, ForeignKey("qaida.id"), nullable=True)
     profile_id = Column(String, ForeignKey("profile.id"), nullable=True)
     # Naam van een motorcapaciteit die deze vraag zelf kan beantwoorden.
@@ -533,6 +538,11 @@ class Assessment(Base):
     insufficient_evidence_explanation = Column(Text, nullable=True)
 
     supersedes = Column(String, ForeignKey("assessment.id"), nullable=True)
+    # §5.12: een beoordeling met een verouderde afhankelijkheid krijgt stale = true
+    # en wordt nooit stilzwijgend herrekend. superseded_by staat er niet als
+    # kolom bij: die zou het terugschrijven op een append-only rij vereisen en
+    # is af te leiden uit supersedes. Zie docs/verschillen-met-de-spec.md.
+    stale = Column(Boolean, nullable=False, default=False)
     rapport = Column(JSON, nullable=False)
     created_at = Column(DateTime, nullable=False, default=nu)
     created_by = Column(Text, nullable=False)
@@ -696,63 +706,77 @@ class AuditLog(Base):
 
 
 class CorpusSource(Base):
+    """§5.13. Een brontekst of verzameling."""
+
     __tablename__ = "corpus_source"
 
     id = Column(String, primary_key=True, default=nieuw_id)
     name = Column(Text, nullable=False)
-    api_ref = Column(Text, nullable=True)
-    licentie = Column(Text, nullable=True)
-    toelichting = Column(Text, nullable=True)
+    kind = Column(Text, nullable=True)
+    license = Column(Text, nullable=True)
+    access_method = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, default=nu)
 
 
-class CorpusDocument(Base):
-    __tablename__ = "corpus_document"
+class CorpusEntry(Base):
+    """§5.13. Een adresseerbare eenheid binnen een bron: vers, hadith, passage."""
+
+    __tablename__ = "corpus_entry"
 
     id = Column(String, primary_key=True, default=nieuw_id)
-    source_id = Column(String, ForeignKey("corpus_source.id"), nullable=False)
-    external_id = Column(Text, nullable=False)
-    title = Column(Text, nullable=True)
-    language = Column(Text, nullable=True)
-    locator = Column(Text, nullable=True)
-
-
-class CorpusPassage(Base):
-    __tablename__ = "corpus_passage"
-
-    id = Column(String, primary_key=True, default=nieuw_id)
-    document_id = Column(String, ForeignKey("corpus_document.id"), nullable=False)
+    source_ref = Column(String, ForeignKey("corpus_source.id"), nullable=False)
     locator = Column(Text, nullable=True)
     text = Column(Text, nullable=False)
     language = Column(Text, nullable=True)
 
 
-class CorpusRetrieval(Base):
-    __tablename__ = "corpus_retrieval"
+class RetrievalSession(Base):
+    """§5.13. Eén zoektocht in het corpus, met wat er niet is gevonden.
+
+    Hiermee verschilt "geen sterke aanval gevonden" aantoonbaar van "niet
+    gezocht", zoals §4.4 eist. ``mode`` verwijst naar de gebruiksvorm; alleen
+    aanvallen en verdedigen halen premissen op.
+    """
+
+    __tablename__ = "retrieval_session"
 
     id = Column(String, primary_key=True, default=nieuw_id)
-    use_form = Column(String, _fk("use_form"), nullable=False)
-    claim_id = Column(String, ForeignKey("claim.id"), nullable=True)
-    profile_id = Column(String, ForeignKey("profile.id"), nullable=True)
-    zoekvraag = Column(Text, nullable=False)
-    uitgevoerd_op = Column(DateTime, nullable=False, default=nu)
+    mode = Column(String, _fk("use_form"), nullable=False)
+    claim_ref = Column(String, ForeignKey("claim.id"), nullable=True)
+    query = Column(Text, nullable=False)
+    executed_at = Column(DateTime, nullable=False, default=nu)
+    not_found_note = Column(Text, nullable=True)
 
 
-class CorpusRetrievalHit(Base):
-    __tablename__ = "corpus_retrieval_hit"
+class RetrievalSessionScope(Base):
+    """``corpus_scope[]`` van een zoeksessie (§5.13).
+
+    Een aparte tabel in plaats van een lijst in één kolom, zodat de verwijzing
+    naar de doorzochte bron een echte vreemde sleutel is.
+    """
+
+    __tablename__ = "retrieval_session_scope"
 
     id = Column(String, primary_key=True, default=nieuw_id)
-    retrieval_id = Column(String, ForeignKey("corpus_retrieval.id"), nullable=False)
-    passage_id = Column(String, ForeignKey("corpus_passage.id"), nullable=False)
-    # Volgordepositie, geen score. Verlaat de motor nooit als beoordeling.
+    retrieval_session_id = Column(String, ForeignKey("retrieval_session.id"), nullable=False)
+    corpus_source_id = Column(String, ForeignKey("corpus_source.id"), nullable=False)
+
+
+class RetrievalSessionFound(Base):
+    """``found[]`` van een zoeksessie (§5.13), om dezelfde reden een eigen tabel."""
+
+    __tablename__ = "retrieval_session_found"
+
+    id = Column(String, primary_key=True, default=nieuw_id)
+    retrieval_session_id = Column(String, ForeignKey("retrieval_session.id"), nullable=False)
+    corpus_entry_id = Column(String, ForeignKey("corpus_entry.id"), nullable=False)
     positie = Column(Integer, nullable=False, default=0)
-    rationale = Column(Text, nullable=True)
 
 
 CORPUS_TABELLEN: tuple[str, ...] = (
     "corpus_source",
-    "corpus_document",
-    "corpus_passage",
-    "corpus_retrieval",
-    "corpus_retrieval_hit",
+    "corpus_entry",
+    "retrieval_session",
+    "retrieval_session_scope",
+    "retrieval_session_found",
 )

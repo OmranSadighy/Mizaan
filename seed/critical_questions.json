@@ -1,45 +1,256 @@
 {
-  "_toelichting": "Basisvragen per argumentatieschema (§5.8). Herkomst 'base' hoort bij het schema zelf. Een profiel kan de vragenset van een schema uitbreiden; zulke rijen krijgen herkomst 'profile' en verwijzen naar de qaida die ze toevoegt (bijvoorbeeld de masalik al-illah-vragen bij het analogieschema). Het veld 'beantwoordbaar_door_motor' noemt een motorcapaciteit; declareert een vraag er een die de motor bezit, dan beantwoordt de motor haar zelf en levert zij géén zelfstandig labeleffect, omdat het effect al uit die toets volgt. Zo wordt dubbel tellen uitgesloten (§6 stap 7).",
+  "_toelichting": "Basisvragen per argumentatieschema (§5.8). Schema's en hun standaard vragensets zijn seed-data, geen code. Elke basisvraag draagt haar herkomstbron. Herkomst 'base' hoort bij het schema zelf. Een profiel kan de vragenset van een schema uitbreiden; zulke rijen krijgen herkomst 'profile' en verwijzen naar de qaida die ze toevoegt (bijvoorbeeld de masalik al-illah-vragen bij het analogieschema). Het veld 'beantwoordbaar_door_motor' noemt een motorcapaciteit; declareert een vraag er een die de motor bezit, dan beantwoordt de motor haar zelf en levert zij géén zelfstandig labeleffect, omdat het effect al uit die toets volgt. Zo wordt dubbel tellen uitgesloten (§6 stap 7).",
   "versie": "0.1.0",
   "vragen": [
-    {"scheme": "deductive", "volgnummer": "d1", "vraag_nl": "Is de vorm van de redenering geldig?", "vraag_en": "Is the form of the argument valid?", "standaard_effect": "undercut", "beantwoordbaar_door_motor": "form_validity"},
-    {"scheme": "deductive", "volgnummer": "d2", "vraag_nl": "Zijn alle premissen vastgesteld?", "vraag_en": "Are all premises established?", "standaard_effect": "undermine"},
-    {"scheme": "deductive", "volgnummer": "d3", "vraag_nl": "Zijn alle premissen expliciet gemaakt?", "vraag_en": "Have all premises been made explicit?", "standaard_effect": "undercut"},
-
-    {"scheme": "expert_opinion", "volgnummer": "e1", "vraag_nl": "Is deze bron werkelijk deskundig?", "vraag_en": "Is this source genuinely an expert?", "standaard_effect": "undercut"},
-    {"scheme": "expert_opinion", "volgnummer": "e2", "vraag_nl": "Is deze bron deskundig op precies dit gebied?", "vraag_en": "Is this source an expert in precisely this field?", "standaard_effect": "undercut"},
-    {"scheme": "expert_opinion", "volgnummer": "e3", "vraag_nl": "Zegt de bron precies wat hier wordt beweerd?", "vraag_en": "Did the source assert precisely what is claimed here?", "standaard_effect": "undermine"},
-    {"scheme": "expert_opinion", "volgnummer": "e4", "vraag_nl": "Is de bron persoonlijk betrouwbaar in deze zaak?", "vraag_en": "Is the source personally reliable in this matter?", "standaard_effect": "undercut"},
-    {"scheme": "expert_opinion", "volgnummer": "e5", "vraag_nl": "Stemt de uitspraak overeen met wat andere deskundigen zeggen?", "vraag_en": "Is the assertion consistent with what other experts say?", "standaard_effect": "undercut"},
-    {"scheme": "expert_opinion", "volgnummer": "e6", "vraag_nl": "Steunt de uitspraak op onderliggend bewijs, en welk?", "vraag_en": "Is the assertion based on underlying evidence, and which?", "standaard_effect": "undercut"},
-
-    {"scheme": "analogy", "volgnummer": "a1", "vraag_nl": "Is de aangevoerde gelijkenis de relevante gelijkenis?", "vraag_en": "Is the cited similarity the relevant one?", "standaard_effect": "undercut"},
-    {"scheme": "analogy", "volgnummer": "a2", "vraag_nl": "Geldt het beweerde werkelijk in het vergelijkingsgeval?", "vraag_en": "Does the claim actually hold in the compared case?", "standaard_effect": "undermine"},
-    {"scheme": "analogy", "volgnummer": "a3", "vraag_nl": "Zijn er relevante verschillen tussen de twee gevallen?", "vraag_en": "Are there relevant differences between the two cases?", "standaard_effect": "undercut"},
-    {"scheme": "analogy", "volgnummer": "a4", "vraag_nl": "Is er een tegenanalogie die even goed of beter past?", "vraag_en": "Is there a counter-analogy that fits equally well or better?", "standaard_effect": "undercut"},
-
-    {"scheme": "precedent", "volgnummer": "p1", "vraag_nl": "Valt het precedent werkelijk onder de aangevoerde regel?", "vraag_en": "Does the precedent genuinely fall under the cited rule?", "standaard_effect": "undermine"},
-    {"scheme": "precedent", "volgnummer": "p2", "vraag_nl": "Lijkt het huidige geval in de relevante opzichten op het precedent?", "vraag_en": "Is the present case relevantly like the precedent?", "standaard_effect": "undercut"},
-    {"scheme": "precedent", "volgnummer": "p3", "vraag_nl": "Bestaat er een erkende uitzondering die hier van toepassing is?", "vraag_en": "Is there a recognised exception that applies here?", "standaard_effect": "undercut"},
-
-    {"scheme": "sign", "volgnummer": "s1", "vraag_nl": "Hoe sterk is het verband tussen het teken en het aangewezen feit?", "vraag_en": "How strong is the link between the sign and the indicated fact?", "standaard_effect": "undercut"},
-    {"scheme": "sign", "volgnummer": "s2", "vraag_nl": "Is er een andere verklaring die het teken beter dekt?", "vraag_en": "Is there another account that better explains the sign?", "standaard_effect": "undercut"},
-
-    {"scheme": "consequences", "volgnummer": "g1", "vraag_nl": "Hoe waarschijnlijk zijn de aangevoerde gevolgen?", "vraag_en": "How likely are the cited consequences?", "standaard_effect": "undercut"},
-    {"scheme": "consequences", "volgnummer": "g2", "vraag_nl": "Welk bewijs steunt dat die gevolgen optreden?", "vraag_en": "What evidence supports that these consequences will occur?", "standaard_effect": "undermine"},
-    {"scheme": "consequences", "volgnummer": "g3", "vraag_nl": "Zijn er gevolgen met tegengestelde waarde die meegewogen moeten worden?", "vraag_en": "Are there consequences of opposite value that must be weighed?", "standaard_effect": "undercut"},
-
-    {"scheme": "practical_reasoning", "volgnummer": "r1", "vraag_nl": "Zijn er andere middelen om het doel te bereiken?", "vraag_en": "Are there alternative means to the goal?", "standaard_effect": "undercut"},
-    {"scheme": "practical_reasoning", "volgnummer": "r2", "vraag_nl": "Is dit het meest doeltreffende middel?", "vraag_en": "Is this the most effective means?", "standaard_effect": "undercut"},
-    {"scheme": "practical_reasoning", "volgnummer": "r3", "vraag_nl": "Is het praktisch mogelijk?", "vraag_en": "Is it practically possible?", "standaard_effect": "undermine"},
-    {"scheme": "practical_reasoning", "volgnummer": "r4", "vraag_nl": "Heeft het neveneffecten die meegewogen moeten worden?", "vraag_en": "Does it have side effects that must be weighed?", "standaard_effect": "undercut"},
-
-    {"scheme": "ignorance_or_silence", "volgnummer": "i1", "vraag_nl": "Is er voldoende gezocht om het ontbreken te mogen vaststellen?", "vraag_en": "Has the search been thorough enough to establish the absence?", "standaard_effect": "undercut"},
-    {"scheme": "ignorance_or_silence", "volgnummer": "i2", "vraag_nl": "Zou het feit, als het bestond, inmiddels bekend zijn?", "vraag_en": "Would the fact, if it existed, be known by now?", "standaard_effect": "undercut"},
-    {"scheme": "ignorance_or_silence", "volgnummer": "i3", "vraag_nl": "Is het zwijgen hier betekenisvol, of alleen afwezigheid van bericht?", "vraag_en": "Is the silence here meaningful, or merely absence of report?", "standaard_effect": "undercut"},
-
-    {"scheme": "inconsistent_commitment", "volgnummer": "c1", "vraag_nl": "Zijn beide uitspraken werkelijk standpunten van dezelfde partij?", "vraag_en": "Are both statements genuinely commitments of the same party?", "standaard_effect": "undermine"},
-    {"scheme": "inconsistent_commitment", "volgnummer": "c2", "vraag_nl": "Is de tegenspraak echt, of gaat het om verschil in tijd, reikwijdte of betekenis?", "vraag_en": "Is the inconsistency genuine, or a difference of time, scope or sense?", "standaard_effect": "undercut"},
-    {"scheme": "inconsistent_commitment", "volgnummer": "c3", "vraag_nl": "Raakt de tegenspraak de zaak zelf, of alleen de consistentie van de partij?", "vraag_en": "Does the inconsistency bear on the matter itself, or only on the party's consistency?", "standaard_effect": "undercut"}
-  ]
+    {
+      "scheme": "deductive",
+      "volgnummer": "d1",
+      "vraag_nl": "Is de vorm van de redenering geldig?",
+      "vraag_en": "Is the form of the argument valid?",
+      "standaard_effect": "undercut",
+      "beantwoordbaar_door_motor": "form_validity",
+      "herkomst_bron": "klassieke_logica"
+    },
+    {
+      "scheme": "deductive",
+      "volgnummer": "d2",
+      "vraag_nl": "Zijn alle premissen vastgesteld?",
+      "vraag_en": "Are all premises established?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "klassieke_logica"
+    },
+    {
+      "scheme": "deductive",
+      "volgnummer": "d3",
+      "vraag_nl": "Zijn alle premissen expliciet gemaakt?",
+      "vraag_en": "Have all premises been made explicit?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "klassieke_logica"
+    },
+    {
+      "scheme": "expert_opinion",
+      "volgnummer": "e1",
+      "vraag_nl": "Is deze bron werkelijk deskundig?",
+      "vraag_en": "Is this source genuinely an expert?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "expert_opinion",
+      "volgnummer": "e2",
+      "vraag_nl": "Is deze bron deskundig op precies dit gebied?",
+      "vraag_en": "Is this source an expert in precisely this field?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "expert_opinion",
+      "volgnummer": "e3",
+      "vraag_nl": "Zegt de bron precies wat hier wordt beweerd?",
+      "vraag_en": "Did the source assert precisely what is claimed here?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "expert_opinion",
+      "volgnummer": "e4",
+      "vraag_nl": "Is de bron persoonlijk betrouwbaar in deze zaak?",
+      "vraag_en": "Is the source personally reliable in this matter?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "expert_opinion",
+      "volgnummer": "e5",
+      "vraag_nl": "Stemt de uitspraak overeen met wat andere deskundigen zeggen?",
+      "vraag_en": "Is the assertion consistent with what other experts say?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "expert_opinion",
+      "volgnummer": "e6",
+      "vraag_nl": "Steunt de uitspraak op onderliggend bewijs, en welk?",
+      "vraag_en": "Is the assertion based on underlying evidence, and which?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "analogy",
+      "volgnummer": "a1",
+      "vraag_nl": "Is de aangevoerde gelijkenis de relevante gelijkenis?",
+      "vraag_en": "Is the cited similarity the relevant one?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "analogy",
+      "volgnummer": "a2",
+      "vraag_nl": "Geldt het beweerde werkelijk in het vergelijkingsgeval?",
+      "vraag_en": "Does the claim actually hold in the compared case?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "analogy",
+      "volgnummer": "a3",
+      "vraag_nl": "Zijn er relevante verschillen tussen de twee gevallen?",
+      "vraag_en": "Are there relevant differences between the two cases?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "analogy",
+      "volgnummer": "a4",
+      "vraag_nl": "Is er een tegenanalogie die even goed of beter past?",
+      "vraag_en": "Is there a counter-analogy that fits equally well or better?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "precedent",
+      "volgnummer": "p1",
+      "vraag_nl": "Valt het precedent werkelijk onder de aangevoerde regel?",
+      "vraag_en": "Does the precedent genuinely fall under the cited rule?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "precedent",
+      "volgnummer": "p2",
+      "vraag_nl": "Lijkt het huidige geval in de relevante opzichten op het precedent?",
+      "vraag_en": "Is the present case relevantly like the precedent?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "precedent",
+      "volgnummer": "p3",
+      "vraag_nl": "Bestaat er een erkende uitzondering die hier van toepassing is?",
+      "vraag_en": "Is there a recognised exception that applies here?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "sign",
+      "volgnummer": "s1",
+      "vraag_nl": "Hoe sterk is het verband tussen het teken en het aangewezen feit?",
+      "vraag_en": "How strong is the link between the sign and the indicated fact?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "sign",
+      "volgnummer": "s2",
+      "vraag_nl": "Is er een andere verklaring die het teken beter dekt?",
+      "vraag_en": "Is there another account that better explains the sign?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "consequences",
+      "volgnummer": "g1",
+      "vraag_nl": "Hoe waarschijnlijk zijn de aangevoerde gevolgen?",
+      "vraag_en": "How likely are the cited consequences?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "consequences",
+      "volgnummer": "g2",
+      "vraag_nl": "Welk bewijs steunt dat die gevolgen optreden?",
+      "vraag_en": "What evidence supports that these consequences will occur?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "consequences",
+      "volgnummer": "g3",
+      "vraag_nl": "Zijn er gevolgen met tegengestelde waarde die meegewogen moeten worden?",
+      "vraag_en": "Are there consequences of opposite value that must be weighed?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "practical_reasoning",
+      "volgnummer": "r1",
+      "vraag_nl": "Zijn er andere middelen om het doel te bereiken?",
+      "vraag_en": "Are there alternative means to the goal?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "practical_reasoning",
+      "volgnummer": "r2",
+      "vraag_nl": "Is dit het meest doeltreffende middel?",
+      "vraag_en": "Is this the most effective means?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "practical_reasoning",
+      "volgnummer": "r3",
+      "vraag_nl": "Is het praktisch mogelijk?",
+      "vraag_en": "Is it practically possible?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "practical_reasoning",
+      "volgnummer": "r4",
+      "vraag_nl": "Heeft het neveneffecten die meegewogen moeten worden?",
+      "vraag_en": "Does it have side effects that must be weighed?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "ignorance_or_silence",
+      "volgnummer": "i1",
+      "vraag_nl": "Is er voldoende gezocht om het ontbreken te mogen vaststellen?",
+      "vraag_en": "Has the search been thorough enough to establish the absence?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "ignorance_or_silence",
+      "volgnummer": "i2",
+      "vraag_nl": "Zou het feit, als het bestond, inmiddels bekend zijn?",
+      "vraag_en": "Would the fact, if it existed, be known by now?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "ignorance_or_silence",
+      "volgnummer": "i3",
+      "vraag_nl": "Is het zwijgen hier betekenisvol, of alleen afwezigheid van bericht?",
+      "vraag_en": "Is the silence here meaningful, or merely absence of report?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "inconsistent_commitment",
+      "volgnummer": "c1",
+      "vraag_nl": "Zijn beide uitspraken werkelijk standpunten van dezelfde partij?",
+      "vraag_en": "Are both statements genuinely commitments of the same party?",
+      "standaard_effect": "undermine",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "inconsistent_commitment",
+      "volgnummer": "c2",
+      "vraag_nl": "Is de tegenspraak echt, of gaat het om verschil in tijd, reikwijdte of betekenis?",
+      "vraag_en": "Is the inconsistency genuine, or a difference of time, scope or sense?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    },
+    {
+      "scheme": "inconsistent_commitment",
+      "volgnummer": "c3",
+      "vraag_nl": "Raakt de tegenspraak de zaak zelf, of alleen de consistentie van de partij?",
+      "vraag_en": "Does the inconsistency bear on the matter itself, or only on the party's consistency?",
+      "standaard_effect": "undercut",
+      "herkomst_bron": "walton_2008"
+    }
+  ],
+  "herkomst_bron": "walton_2008"
 }

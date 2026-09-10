@@ -10,13 +10,13 @@
   ],
   "premises": [
     {"id": "p_gebod", "text": "De tekst bevat een onvoorwaardelijk gebod tot deze handeling.",
-     "type": "revelation_text", "provenance": {"kind": "submitted_by_user"},
+     "type": "revelation_text", "provenance": {"kind": "user_supplied"},
      "citation": {"source_ref": "Voorbeeldtekst 1:1", "verification_status": "unverified"},
      "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de tekst is onbetwist overgeleverd"},
      "dalalah": {"label": "strong", "rationale": "handmatig ingevoerd: de bewoording is ondubbelzinnig een gebod"},
      "form": {"kind": "atomic", "term": "onvoorwaardelijk_gebod"}},
     {"id": "p_gebod2", "text": "De tekst bevat een onvoorwaardelijk gebod tot deze handeling.",
-     "type": "revelation_text", "provenance": {"kind": "submitted_by_user"},
+     "type": "revelation_text", "provenance": {"kind": "user_supplied"},
      "citation": {"source_ref": "Voorbeeldtekst 1:1", "verification_status": "unverified"},
      "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de tekst is onbetwist overgeleverd"},
      "terms": ["onvoorwaardelijk_gebod", "verplicht"]}

@@ -35,7 +35,8 @@ class HerkomstInvoer(Strikt):
 
     kind: str
     detail: dict[str, Any] | None = None
-    corpus_document_ref: str | None = None
+    # Alleen bij kind = engine_retrieved: de zoeksessie waaruit deze premisse komt.
+    retrieval_ref: str | None = None
 
 
 class StatusInvoer(Strikt):

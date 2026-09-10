@@ -13,8 +13,9 @@ from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from ..configuratie import STANDAARD_SEED, Configuratie
 from ..fouten import InvoerFout, OnbekendeLookupwaarde
-from . import triggers
+from . import overzichten, triggers
 from .model import (
     LOOKUP_KLASSEN,
     AuditLog,
@@ -27,7 +28,14 @@ from .model import (
     SchemeCriticalQuestion,
 )
 
-SEED_MAP = Path(__file__).resolve().parents[3] / "seed"
+
+def standaard_seed_map() -> Path:
+    """De seed-map uit de omgeving; geen pad staat hardgecodeerd (§11)."""
+    return Configuratie.uit_omgeving().controleer_seed()
+
+
+# Bewaard als naam voor bestaande aanroepers; de waarde komt uit de omgeving.
+SEED_MAP = Configuratie(databasepad="", seed_map=STANDAARD_SEED, uitvoer_map=Path()).seed_map
 
 
 def maak_engine(url: str = "sqlite+pysqlite:///:memory:") -> Engine:
@@ -46,6 +54,7 @@ def maak_schema(engine: Engine) -> None:
     Base.metadata.create_all(engine)
     with engine.begin() as verbinding:
         triggers.installeer(verbinding)
+        overzichten.installeer(verbinding)
 
 
 def maak_sessiefabriek(engine: Engine) -> sessionmaker[Session]:
@@ -75,12 +84,16 @@ def _lees(pad: Path) -> Any:
     return json.loads(pad.read_text(encoding="utf-8"))
 
 
-def laad_seed(sessie: Session, seed_map: Path = SEED_MAP, actor: str = "seed") -> dict[str, int]:
+def laad_seed(sessie: Session, seed_map: Path | None = None, actor: str = "seed") -> dict[str, int]:
     """Laad kernregels, lookups, kritische vragen en profielen.
 
     De volgorde is bindend: kernregels eerst, omdat lookup-rijen naar de
     kernregel kunnen verwijzen die hun soort bevinding draagt.
+
+    Zonder opgegeven map komt de seed-map uit de omgeving (§11).
     """
+    if seed_map is None:
+        seed_map = standaard_seed_map()
     telling: dict[str, int] = {}
 
     kern = _lees(seed_map / "kernel_rules.json")
@@ -133,6 +146,7 @@ def laad_seed(sessie: Session, seed_map: Path = SEED_MAP, actor: str = "seed") -
                 vraag_en=vraag.get("vraag_en"),
                 standaard_effect=vraag["standaard_effect"],
                 origin="base",
+                herkomst_bron=vraag.get("herkomst_bron", vragen.get("herkomst_bron")),
                 beantwoordbaar_door_motor=vraag.get("beantwoordbaar_door_motor"),
                 version=vragen["versie"],
             )

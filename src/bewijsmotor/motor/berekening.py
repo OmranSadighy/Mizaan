@@ -11,9 +11,11 @@ Twee rekenregels, beide met hun reden in de uitvoer:
   ``zwakste_schakel``).
 * **Over bewijslijnen heen geldt het maximum.** Een claim met één sluitende
   bewijslijn en daarnaast een slechte lijn is door die slechte lijn niet
-  zwakker geworden. Fase 1 kent geen verhoging door convergentie; die vraagt
-  een afbeelding van labels op kansen, en dat is een instelbare regel, geen
-  kernregel.
+  zwakker geworden.
+
+INTERIM-REGEL (§4.5, convergente steun): fase 1 verhoogt het label niet bij
+convergente onafhankelijke steun. Noisy-OR vereist een afbeelding van labels op
+kansen, en die afbeelding is een qaida. Vervalt in fase 2.
 """
 
 from __future__ import annotations
@@ -272,11 +274,17 @@ def bereken(
         ]
         if gefaald:
             label = schaal.laagste
+            # INTERIM-REGEL (§4.5, gefaalde kritische vraag). Vervalt in fase 2,
+            # wanneer B3 de nederlaaggraaf levert.
+            namen = ", ".join(
+                vraag.vraag for vraag in inferentie.kritische_vragen if vraag.sleutel in gefaald
+            )
             rationale += (
-                ". Er is minstens één kritische vraag met de status 'gefaald'; zolang die staat, "
-                "is het label van deze stap onbepaald. Anders zou de motor een stap sterk noemen "
-                "die zij zelf als gebroken heeft gemarkeerd. Interim-regel voor fase 1: in fase 2 "
-                "neemt de nederlaaggraaf deze rol over"
+                ". Er is minstens één kritische vraag met de status 'gefaald', namelijk: "
+                + namen
+                + ". Zolang die staat, is het label van deze stap onbepaald. Anders zou de motor "
+                "een stap sterk noemen die zij zelf als gebroken heeft gemarkeerd. Interim-regel "
+                "voor fase 1 (§4.5): in fase 2 neemt de nederlaaggraaf deze rol over"
             )
 
         uitkomst = InferentieUitkomst(

@@ -75,7 +75,7 @@ class Citaat:
 class Herkomst:
     kind: str
     detail: dict[str, Any] | None
-    corpus_document_ref: str | None
+    retrieval_ref: str | None
 
 
 @dataclass(frozen=True)
@@ -228,7 +228,7 @@ def _bouw_premisse(
         provenance=Herkomst(
             kind=invoer.provenance.kind,
             detail=invoer.provenance.detail,
-            corpus_document_ref=invoer.provenance.corpus_document_ref,
+            retrieval_ref=invoer.provenance.retrieval_ref,
         ),
         citation=Citaat(
             source_ref=citaat.source_ref if citaat else None,

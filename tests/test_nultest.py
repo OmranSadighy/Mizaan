@@ -202,9 +202,7 @@ def test_7_command_line_weigert_een_enkel_getal(tmp_path):
             {
                 "schema_version": "1.0.0",
                 "claims": [{"id": "c1", "text": "x"}],
-                "premises": [
-                    {"id": "p1", "text": "y", "provenance": {"kind": "submitted_by_user"}}
-                ],
+                "premises": [{"id": "p1", "text": "y", "provenance": {"kind": "user_supplied"}}],
                 "inferences": [{"id": "i1", "from": ["p1"], "to": "c1"}],
             }
         ),

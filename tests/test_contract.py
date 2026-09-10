@@ -139,7 +139,7 @@ def test_niet_verwerkte_invoervelden_worden_geweigerd(motor):
         motor.beoordeel(invoer, actor="contract")
 
     invoer = lees_voorbeeld("nultest_zwakste_schakel.json")
-    invoer["premises"][0]["provenance"]["corpus_document_ref"] = "doc1"
+    invoer["premises"][0]["provenance"]["retrieval_ref"] = "doc1"
     with pytest.raises(InvoerFout, match="corpus is in deze fase leeg"):
         motor.beoordeel(invoer, actor="contract")
 
@@ -147,3 +147,15 @@ def test_niet_verwerkte_invoervelden_worden_geweigerd(motor):
     invoer["competence_level"] = "leek"
     with pytest.raises(OnbekendeLookupwaarde, match="bestaat niet in profiel"):
         motor.beoordeel(invoer, actor="contract")
+
+
+def test_elke_beoordeling_noemt_de_interim_regels(motor):
+    """§4.5 eist dat de interim-regels als zodanig gemarkeerd zijn."""
+    uitvoer = motor.beoordeel(lees_voorbeeld("kalibratie_gebed.json"), actor="contract")
+    interim = uitvoer["beoordelingen"][0]["interim_regels"]
+    namen = {regel["regel"] for regel in interim}
+    assert namen == {"gefaalde kritische vraag", "convergente steun", "verzwegen premissen"}
+    for regel in interim:
+        assert regel["spec"] == "§4.5"
+        assert regel["vervalt"]
+        assert regel["toegepast_in"]

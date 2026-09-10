@@ -1,0 +1,42 @@
+# Vastgepinde afhankelijkheden met inhoudshash (bouwspecificatie §11, fase 1).
+#
+# Dit is geen stijlvoorkeur maar volgt uit de reproduceerbaarheidseis: een
+# beoordeling moet later te herhalen zijn, en een gewijzigde bibliotheek kan
+# bij dezelfde invoer een andere uitkomst geven. De hash pint niet alleen de
+# versie vast maar ook de inhoud van het pakket.
+#
+# Installeren:  pip install --require-hashes -r requirements.lock
+#
+# De hash hoort bij het wiel voor CPython 3.11 op linux x86_64 waar een
+# pakket platformafhankelijk is. Op een ander platform hoort er een ander
+# wiel bij en moet deze lockfile opnieuw worden gemaakt.
+
+# --- draaitijd ---
+annotated-types==0.8.0 \
+    --hash=sha256:f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0
+greenlet==3.5.5 \
+    --hash=sha256:74cc6df89ec5302337adc9cf096221cbed2510fd444b0e0f1586cf0470740864
+pydantic==2.13.5 \
+    --hash=sha256:346a034f080da3755d8e9cb5e00e8b07de1d39e4f6e2c87d8ab7cafa0b269a73
+pydantic_core==2.46.5 \
+    --hash=sha256:49776eab08766a08dfff7012f8b422dcd7e25e43b316eedf0477c24fcfa84b7c
+SQLAlchemy==2.0.52 \
+    --hash=sha256:938325a5373267afc53bfbe72983b20fbd64ca47842aac62433c3da1137ecff1
+typing-inspection==0.4.4 \
+    --hash=sha256:65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147
+typing_extensions==4.16.0 \
+    --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8
+
+# --- ontwikkeling en tests ---
+iniconfig==2.3.0 \
+    --hash=sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12
+packaging==26.3 \
+    --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
+pluggy==1.6.0 \
+    --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
+Pygments==2.21.0 \
+    --hash=sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9
+pytest==9.1.1 \
+    --hash=sha256:37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c
+ruff==0.16.6 \
+    --hash=sha256:d72c591a96986ee4268860e2b7235082129ca5e4cb9cbba653a4b57c11893757

@@ -47,7 +47,7 @@ def test_kalibratie_maximum_over_lijnen_met_reden(motor, leeg_profiel_is_leeg):
             "id": "p_zwakke_lijn",
             "text": "Een losse, zwak onderbouwde aanwijzing.",
             "type": "transmitted_report",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "citation": {
                 "source_ref": "Onbekende verzameling, zonder keten",
                 "verification_status": "disputed",
@@ -61,7 +61,7 @@ def test_kalibratie_maximum_over_lijnen_met_reden(motor, leeg_profiel_is_leeg):
             "id": "p_zwakke_brug",
             "text": "Een losse aanwijzing volstaat om de verplichting vast te stellen.",
             "type": "rational_intuition",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "citation": {"source_ref": "Aangenomen regel", "verification_status": "unverified"},
             "thubut": {
                 "label": "weak",

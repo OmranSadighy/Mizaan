@@ -263,11 +263,17 @@ def test_corpustabellen_bestaan_en_zijn_leeg(sessie):
 
 def test_gebruiksvormen_staan_klaar_zonder_migratie(sessie):
     """De vier gebruiksvormen bestaan als data; fase 1 bouwt alleen 'assess'."""
-    vormen = set(sessie.execute(select(LOOKUP_KLASSEN["use_form"].key)).scalars())
-    assert {"assess", "compare", "attack", "defend"} <= vormen
+    klasse = LOOKUP_KLASSEN["use_form"]
+    rijen = dict(sessie.execute(select(klasse.key, klasse.rangorde)).all())
+    assert {"assess", "compare", "attack", "defend"} <= set(rijen)
+    # Vanaf welke fase een vorm wordt uitgevoerd, is data (§1). Aanvallen en
+    # verdedigen horen niet bij dit bouwplan en dragen daarom geen fase.
+    assert rijen["assess"] == 1
+    assert rijen["compare"] == 6
+    assert rijen["attack"] is None and rijen["defend"] is None
     assert "use_form" in {kolom.name for kolom in Assessment.__table__.columns}
     assert "provenance" in {kolom.name for kolom in Premise.__table__.columns}
-    assert "provenance_corpus_document_id" in {kolom.name for kolom in Premise.__table__.columns}
+    assert "retrieval_ref" in {kolom.name for kolom in Premise.__table__.columns}
 
 
 def test_profiel_kan_de_vragenset_van_een_schema_uitbreiden(sessie):
@@ -303,7 +309,7 @@ def test_statuslabel_zonder_tegenstelling_wordt_geweigerd(sessie):
             external_ref="p_status",
             text="tekst",
             proposed_by="user",
-            provenance="submitted_by_user",
+            provenance="user_supplied",
             status_label="muhkam",
         )
     )
@@ -316,7 +322,7 @@ def test_statuslabel_zonder_tegenstelling_wordt_geweigerd(sessie):
             external_ref="p_status_ok",
             text="tekst",
             proposed_by="user",
-            provenance="submitted_by_user",
+            provenance="user_supplied",
             status_label="muhkam",
             status_opposition="mutashabih",
         )
@@ -437,3 +443,96 @@ def test_motor_weigert_te_rekenen_zonder_kernregels():
     with pytest.raises(OntbrekendeKern, match="weigert zij te oordelen"):
         Motor(losse_sessie)
     losse_sessie.close()
+
+
+def test_corpustabellen_hebben_de_vorm_uit_de_spec(sessie):
+    """§5.13 schrijft corpus_source, corpus_entry en retrieval_session voor."""
+    from bewijsmotor.db.model import CorpusEntry, CorpusSource, RetrievalSession
+
+    assert {"name", "kind", "license", "access_method"} <= {
+        kolom.name for kolom in CorpusSource.__table__.columns
+    }
+    assert {"source_ref", "locator", "text", "language"} <= {
+        kolom.name for kolom in CorpusEntry.__table__.columns
+    }
+    assert {"mode", "claim_ref", "query", "executed_at", "not_found_note"} <= {
+        kolom.name for kolom in RetrievalSession.__table__.columns
+    }
+    # corpus_scope[] en found[] zijn eigen tabellen, zodat de verwijzingen echte
+    # vreemde sleutels zijn in plaats van een lijst in een kolom.
+    assert "retrieval_session_scope" in Base.metadata.tables
+    assert "retrieval_session_found" in Base.metadata.tables
+    # Een premisse die uit het corpus komt, wijst naar de zoeksessie (§5.6).
+    assert "retrieval_ref" in {kolom.name for kolom in Premise.__table__.columns}
+
+
+def test_de_afgeleide_overzichten_bestaan_en_zijn_bevraagbaar(sessie):
+    """§5.12 noemt vier overzichten; ze zijn views, geen aparte opslag."""
+    from bewijsmotor.db.overzichten import OVERZICHTEN
+
+    for naam in OVERZICHTEN:
+        aantal = sessie.execute(text(f"SELECT COUNT(*) FROM {naam}")).scalar_one()
+        assert aantal == 0
+
+
+def test_superseded_by_is_af_te_leiden_zonder_terug_te_schrijven(sessie):
+    """§5.12 noemt supersedes en superseded_by; append-only verbiedt terugschrijven."""
+    motor = Motor(sessie)
+    invoer = lees_voorbeeld("nultest_zwakste_schakel.json")
+    motor.beoordeel(invoer, actor="test")
+    sessie.flush()
+    motor.beoordeel(invoer, actor="test")
+    sessie.flush()
+
+    rijen = sessie.execute(
+        text(
+            "SELECT assessment_id, supersedes, superseded_by FROM v_beoordeling_keten "
+            "ORDER BY created_at"
+        )
+    ).all()
+    assert len(rijen) == 2
+    eerste, tweede = rijen
+    assert eerste.supersedes is None
+    assert eerste.superseded_by == tweede.assessment_id
+    assert tweede.supersedes == eerste.assessment_id
+    assert tweede.superseded_by is None
+
+
+def test_verouderde_beoordeling_wordt_zichtbaar_en_niet_herrekend(sessie):
+    """§5.12: een beoordeling met een verouderde afhankelijkheid is stale."""
+    Motor(sessie).beoordeel(lees_voorbeeld("nultest_zwakste_schakel.json"), actor="test")
+    sessie.flush()
+    assert sessie.execute(text("SELECT COUNT(*) FROM v_verouderde_beoordelingen")).scalar_one() == 0
+
+    # Het profiel krijgt een nieuwe versie; de vastgelegde afhankelijkheid niet.
+    sessie.execute(text("UPDATE profile SET version = '0.2.0' WHERE name = 'leeg'"))
+    sessie.flush()
+    rijen = sessie.execute(
+        text(
+            "SELECT afhankelijkheid_soort, vastgelegde_versie, huidige_versie "
+            "FROM v_verouderde_beoordelingen"
+        )
+    ).all()
+    assert rijen, "een gewijzigde profielversie hoort de beoordeling als verouderd te tonen"
+    assert rijen[0].vastgelegde_versie == "0.1.0"
+    assert rijen[0].huidige_versie == "0.2.0"
+    # De motor herrekent niets stilzwijgend: de opgeslagen rij is ongewijzigd.
+    beoordeling = sessie.execute(select(Assessment)).scalars().one()
+    assert beoordeling.profile_version == "0.1.0"
+    assert beoordeling.stale is False
+    sessie.rollback()
+
+
+def test_basisvragen_dragen_hun_herkomstbron(sessie):
+    """§5.8: basisvragen krijgen een herkomstveld, bijvoorbeeld walton_2008."""
+    from bewijsmotor.db.model import SchemeCriticalQuestion
+
+    vragen = (
+        sessie.execute(
+            select(SchemeCriticalQuestion).where(SchemeCriticalQuestion.scheme == "analogy")
+        )
+        .scalars()
+        .all()
+    )
+    assert vragen
+    assert all(vraag.herkomst_bron == "walton_2008" for vraag in vragen)

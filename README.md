@@ -27,7 +27,10 @@ aangeleverd als JSON.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -e ".[dev]"
+
+# installeer de vastgepinde set, met controle op de inhoudshash
+.venv/bin/pip install --require-hashes -r requirements.lock
+.venv/bin/pip install --no-deps -e .
 
 # schema aanmaken en de seed laden
 .venv/bin/bewijsmotor init --db bewijsmotor.sqlite3
@@ -48,6 +51,27 @@ Vraag je om één samenvattend cijfer, dan weigert het instrument met uitleg:
 .venv/bin/bewijsmotor beoordeel voorbeelden/kalibratie_gebed.json --enkel-getal
 ```
 
+## Configuratie
+
+Paden staan niet in de code. Drie omgevingsvariabelen sturen ze, elk met een
+zinnige standaard:
+
+| Variabele | Waarvoor | Standaard |
+|---|---|---|
+| `BEWIJSMOTOR_DB` | pad naar de database, of `:memory:` | `bewijsmotor.sqlite3` |
+| `BEWIJSMOTOR_SEED` | map met kernregels, lookups, vragen en profielen | `seed/` naast dit bestand |
+| `BEWIJSMOTOR_UITVOER` | map waarin beoordelingen belanden | `uitvoer/` |
+
+`bewijsmotor configuratie` toont wat er geldt. Een lege waarde is een fout en
+geen keuze.
+
+## Afhankelijkheden
+
+Exacte versies, geen bereiken, en `requirements.lock` pint elk pakket met zijn
+sha256-inhoudshash. Dat is geen stijlvoorkeur: een beoordeling moet later te
+herhalen zijn, en een gewijzigde bibliotheek kan bij dezelfde invoer een andere
+uitkomst geven.
+
 ## Hoe het in elkaar zit
 
 | Map | Wat er staat |
@@ -58,8 +82,9 @@ Vraag je om één samenvattend cijfer, dan weigert het instrument met uitleg:
 | `src/bewijsmotor/motor/` | De stappen van §6: ontleden, verzwegen premissen, inferentie, drogredenen, zekerheid, kantelpunten, rapporteren. |
 | `src/bewijsmotor/contract.py` | Het uitvoercontract, waaronder de weigering om één getal te produceren. |
 | `voorbeelden/` | De invoer voor de nultest en de kalibratietest. |
-| `docs/` | De keuzes die het oordeel beïnvloeden, en wat is aangenomen. |
-| `scripts/` | `nultest_uitslag.py` toont per acceptatiecriterium wat de motor werkelijk teruggeeft. |
+| `docs/` | De keuzes die het oordeel beïnvloeden, de verschillen met de specificatie, en de open items. |
+| `scripts/` | `nultest_uitslag.py` toont de zeven nultest-criteria en de kalibratie; `acceptatie_fase1.py` de overige acceptatiecriteria. |
+| `bouwspecificatie.md` | De specificatie waartegen gebouwd is. |
 
 ## Uitgangspunten die het schema afdwingt
 

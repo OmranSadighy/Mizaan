@@ -27,6 +27,11 @@ Conventies, vastgelegd omdat zij het oordeel beïnvloeden:
 3. **De motor bewijst geen gat.** Slaagt een formele toets niet, dan zegt de
    motor wat zij heeft getoetst en wat daaruit volgt, nooit dat er zeker iets
    ontbreekt.
+
+INTERIM-REGEL (§4.5, verzwegen premissen): detectie gebeurt structureel, bij
+deductieve stappen met opgegeven vorm door te bepalen welke premisse ontbreekt
+voor een geldig patroon, en bij overige stappen door termdekking. Termdekking is
+een heuristiek, geen bewijs. Vervalt of wordt aangevuld in fase 5.
 """
 
 from __future__ import annotations

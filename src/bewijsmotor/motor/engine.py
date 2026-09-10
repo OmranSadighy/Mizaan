@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from .. import CONTRACT_VERSIE, INVOERSCHEMA_VERSIE, MOTOR_VERSIE
+from .. import CONTRACT_VERSIE, GEBOUWDE_FASE, INVOERSCHEMA_VERSIE, MOTOR_VERSIE
 from ..contract import verifieer
 from ..db.model import (
     LOOKUP_KLASSEN,
@@ -55,9 +55,34 @@ from .bevindingen import DrogredenBevinding, VerzwegenVoorstel
 from .graaf import Graaf, KritischeVraag, Premisse, Vocabulaires, bouw, steunkringen
 from .rapport import bouw_beoordeling
 
-# De vier gebruiksvormen bestaan als data (§4.4). Fase 1 voert er één uit; de
-# overige worden geweigerd in plaats van stilzwijgend als 'toetsen' behandeld.
-UITVOERBARE_GEBRUIKSVORMEN = frozenset({"assess"})
+# De drie interim-regels van §4.5, zoals de motor ze toepast. Ze gelden alleen
+# in fase 1 en de plek waar elk wordt toegepast draagt dezelfde verwijzing.
+INTERIM_REGELS_FASE1 = (
+    {
+        "regel": "gefaalde kritische vraag",
+        "spec": "§4.5",
+        "werking": "een kritische vraag met status 'gefaald' plafonneert het label van de "
+        "inferentie op onbepaald, en de rationale noemt de vraag",
+        "vervalt": "fase 2, wanneer B3 de nederlaaggraaf levert",
+        "toegepast_in": "motor/berekening.py",
+    },
+    {
+        "regel": "convergente steun",
+        "spec": "§4.5",
+        "werking": "binnen een bewijslijn geldt het minimum, over onafhankelijke lijnen heen "
+        "het maximum; geen verhoging door convergentie",
+        "vervalt": "fase 2",
+        "toegepast_in": "motor/berekening.py",
+    },
+    {
+        "regel": "verzwegen premissen",
+        "spec": "§4.5",
+        "werking": "structurele detectie via vormaanvulling en termdekking; termdekking is een "
+        "heuristiek en de uitvoer luidt 'mogelijk verzwegen premisse'",
+        "vervalt": "fase 5",
+        "toegepast_in": "logica/vorm.py en motor/engine.py",
+    },
+)
 
 VOORBEHOUDEN_FASE1 = (
     "Fase 1. De motor draait uitsluitend op de kern; er zijn geen inhoudelijke regels geladen.",
@@ -229,7 +254,9 @@ class Motor:
                         voorstel=f"mogelijk verzwegen premisse: {kandidaat.tekst}",
                         vorm=kandidaat.vorm,
                         basis=kandidaat.basis,
-                        rationale=("toets: vormaanvulling. " + kandidaat.rationale),
+                        rationale=(
+                            "interim-regel §4.5. toets: vormaanvulling. " + kandidaat.rationale
+                        ),
                         kernregel=self._kernregel_van(
                             self.kernregel_van_basis, kandidaat.basis, "unstated_premise_basis"
                         ),
@@ -258,7 +285,8 @@ class Motor:
                             self.kernregel_van_basis, "term_coverage", "unstated_premise_basis"
                         ),
                         rationale=(
-                            f"toets: termdekking. De term '{term}' staat in de conclusie en in "
+                            "interim-regel §4.5. toets: termdekking. De term "
+                            f"'{term}' staat in de conclusie en in "
                             "geen van de aangevoerde premissen. Termdekking is een heuristiek en "
                             "geen bewijs: de verbinding kan ook in de woorden zelf besloten "
                             "liggen. De motor stelt daarom een aanname voor en stelt geen gat vast"
@@ -437,14 +465,7 @@ class Motor:
         invoer = InzendingInvoer.model_validate(ruwe_invoer)
         graaf = bouw(invoer, self.vocab, MOTOR_VERSIE)  # stap 1
         self._weiger_niet_verwerkte_velden(graaf)
-        if graaf.gebruiksvorm not in UITVOERBARE_GEBRUIKSVORMEN:
-            raise InvoerFout(
-                f"gebruiksvorm '{graaf.gebruiksvorm}' bestaat wel in het schema maar wordt in "
-                "deze fase niet uitgevoerd. De motor doet nu uitsluitend "
-                f"{' en '.join(sorted(UITVOERBARE_GEBRUIKSVORMEN))}. Een beoordeling teruggeven "
-                "onder een vlag die niet uitgevoerd is, zou een onware bewering over de eigen "
-                "uitvoer zijn."
-            )
+        self._weiger_niet_gebouwde_gebruiksvorm(graaf.gebruiksvorm)
         profiel = haal_profiel(self.sessie, invoer.profile, invoer.profile_version)
         niveaus = list(
             self.sessie.execute(
@@ -485,6 +506,7 @@ class Motor:
                 "regelset": regelset_versie(self.sessie),
             },
             "voorbehouden": list(VOORBEHOUDEN_FASE1),
+            "interim_regels": [dict(regel) for regel in INTERIM_REGELS_FASE1],
             "drogredenscan": DROGREDENSCAN_FASE1,
         }
 
@@ -546,6 +568,35 @@ class Motor:
     # Opslag
     # ------------------------------------------------------------------
 
+    def _weiger_niet_gebouwde_gebruiksvorm(self, gebruiksvorm: str) -> None:
+        """Weiger een gebruiksvorm die deze fase nog niet uitvoert.
+
+        Vanaf welke fase een vorm wordt uitgevoerd, staat als data in de lookup
+        (§1 geeft de fasetoewijzing). De motor kent alleen haar eigen fase. Een
+        beoordeling teruggeven onder een vlag die niet is uitgevoerd, zou een
+        onware bewering over de eigen uitvoer zijn.
+        """
+        klasse = LOOKUP_KLASSEN["use_form"]
+        rij = self.sessie.get(klasse, gebruiksvorm)
+        vanaf = rij.rangorde if rij is not None else None
+        if vanaf is None or vanaf > GEBOUWDE_FASE:
+            uitvoerbaar = sorted(
+                sleutel
+                for sleutel, fase in self.sessie.execute(select(klasse.key, klasse.rangorde)).all()
+                if fase is not None and fase <= GEBOUWDE_FASE
+            )
+            reden = (
+                "die vorm hoort niet bij dit bouwplan"
+                if vanaf is None
+                else f"die vorm wordt pas vanaf fase {vanaf} uitgevoerd"
+            )
+            raise InvoerFout(
+                f"gebruiksvorm '{gebruiksvorm}' bestaat in het schema, maar {reden}. "
+                f"Deze motor bouwt fase {GEBOUWDE_FASE} en voert uit: "
+                + (", ".join(uitvoerbaar) or "(geen)")
+                + "."
+            )
+
     def _weiger_niet_verwerkte_velden(self, graaf: Graaf) -> None:
         """Weiger invoer die fase 1 zou aannemen en vervolgens laten vallen.
 
@@ -567,11 +618,11 @@ class Motor:
         met_corpus = [
             ref
             for ref, premisse in graaf.premissen.items()
-            if premisse.provenance.corpus_document_ref is not None
+            if premisse.provenance.retrieval_ref is not None
         ]
         if met_corpus:
             raise InvoerFout(
-                "deze premissen verwijzen naar een corpusdocument: "
+                "deze premissen verwijzen naar een zoeksessie in het corpus: "
                 + ", ".join(sorted(met_corpus))
                 + ". Het corpus is in deze fase leeg en wordt niet geraadpleegd; de verwijzing "
                 "zou zonder betekenis worden opgeslagen."

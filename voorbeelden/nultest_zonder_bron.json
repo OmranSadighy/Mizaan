@@ -8,12 +8,12 @@
   ],
   "premises": [
     {"id": "p_metbron", "text": "Wat vaststaat, levert de stelling op.",
-     "type": "rational_intuition", "provenance": {"kind": "submitted_by_user"},
+     "type": "rational_intuition", "provenance": {"kind": "user_supplied"},
      "citation": {"source_ref": "Bron C, §1", "verification_status": "verified"},
      "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de regel staat letterlijk in de bron"},
      "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "feit"}, "consequent": {"kind": "atomic", "term": "stelling_geldt"}}},
     {"id": "p_zonderbron", "text": "Dit feit staat vast.",
-     "type": "transmitted_report", "provenance": {"kind": "submitted_by_user"},
+     "type": "transmitted_report", "provenance": {"kind": "user_supplied"},
      "thubut": {"label": "certain", "rationale": "handmatig ingevoerd zonder bronvermelding; deze score hoort genegeerd te worden"},
      "form": {"kind": "atomic", "term": "feit"}}
   ],

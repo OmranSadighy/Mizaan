@@ -18,7 +18,7 @@ def _basis() -> dict:
                 "id": "p1",
                 "text": "Het feit.",
                 "type": "sense_observation",
-                "provenance": {"kind": "submitted_by_user"},
+                "provenance": {"kind": "user_supplied"},
                 "citation": {"source_ref": "Bron", "verification_status": "verified"},
                 "thubut": {"label": "certain", "rationale": "handmatig: vastgesteld"},
                 "form": {"kind": "atomic", "term": "p"},
@@ -27,7 +27,7 @@ def _basis() -> dict:
                 "id": "p2",
                 "text": "De brug.",
                 "type": "rational_intuition",
-                "provenance": {"kind": "submitted_by_user"},
+                "provenance": {"kind": "user_supplied"},
                 "citation": {"source_ref": "Bron", "verification_status": "verified"},
                 "thubut": {"label": "certain", "rationale": "handmatig: vastgesteld"},
                 "form": {
@@ -105,7 +105,7 @@ def test_zwakste_sub_premisse_werkt_door_naar_het_geheel(motor):
             "id": "p1a",
             "text": "Dat het zo is overgeleverd.",
             "type": "transmitted_report",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "citation": {"source_ref": "Bron A", "verification_status": "verified"},
             "thubut": {"label": "certain", "rationale": "handmatig: onbetwist"},
         },
@@ -113,7 +113,7 @@ def test_zwakste_sub_premisse_werkt_door_naar_het_geheel(motor):
             "id": "p1b",
             "text": "Dat er een grondslag onder ligt.",
             "type": "consensus_claim",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "citation": {"source_ref": "Bron B", "verification_status": "disputed"},
             "thubut": {"label": "weak", "rationale": "handmatig: de grondslag is betwist"},
         },
@@ -224,7 +224,7 @@ def test_claim_die_op_een_steunkring_rust_leest_haar_uitkomst_af(motor):
             "id": "p_top",
             "text": "De overlevering is betrouwbaar.",
             "type": "transmitted_report",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "asserts_claim": "c_kring1",
             "form": {"kind": "atomic", "term": "overlevering_betrouwbaar"},
         }
@@ -234,7 +234,7 @@ def test_claim_die_op_een_steunkring_rust_leest_haar_uitkomst_af(motor):
             "id": "p_top_brug",
             "text": "Is de overlevering betrouwbaar, dan geldt het oordeel.",
             "type": "rational_intuition",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "citation": {"source_ref": "Aangenomen regel 3", "verification_status": "unverified"},
             "thubut": {"label": "certain", "rationale": "handmatig: als aanname aangeleverd"},
             "form": {
@@ -267,7 +267,7 @@ def test_tegenstrijdige_premissen_steunen_op_de_non_contradictieregel(motor):
         "id": "p2",
         "text": "Het feit is niet zo.",
         "type": "sense_observation",
-        "provenance": {"kind": "submitted_by_user"},
+        "provenance": {"kind": "user_supplied"},
         "citation": {"source_ref": "Bron", "verification_status": "verified"},
         "thubut": {"label": "certain", "rationale": "handmatig: ook dit is waargenomen"},
         "form": {"kind": "negation", "of": {"kind": "atomic", "term": "p"}},
@@ -286,5 +286,10 @@ def test_niet_gebouwde_gebruiksvorm_wordt_geweigerd(motor):
     """Een vlag die niet uitgevoerd is, mag niet stilzwijgend als toetsen gelden."""
     invoer = _basis()
     invoer["use_form"] = "attack"
-    with pytest.raises(InvoerFout, match="wordt in deze fase niet uitgevoerd"):
+    with pytest.raises(InvoerFout, match="hoort niet bij dit bouwplan"):
+        motor.beoordeel(invoer, actor="test")
+
+    # Vergelijken hoort wél bij het bouwplan, maar pas bij fase 6.
+    invoer["use_form"] = "compare"
+    with pytest.raises(InvoerFout, match="pas vanaf fase 6"):
         motor.beoordeel(invoer, actor="test")

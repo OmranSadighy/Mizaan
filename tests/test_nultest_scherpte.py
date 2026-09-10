@@ -104,7 +104,7 @@ def test_bronloze_lijn_naast_een_sluitende_lijn_maakt_de_claim_niet_onvoldoende(
             "id": "p_los",
             "text": "Een bewering zonder bron.",
             "type": "transmitted_report",
-            "provenance": {"kind": "submitted_by_user"},
+            "provenance": {"kind": "user_supplied"},
             "thubut": {"label": "certain", "rationale": "handmatig: zonder bron aangeleverd"},
             "form": {"kind": "atomic", "term": "gebed_is_verplicht"},
         }
@@ -210,7 +210,7 @@ def _stap(premissetype: str, schema: str, status: dict | None = None) -> dict:
         "id": "p1",
         "text": "Het feit.",
         "type": premissetype,
-        "provenance": {"kind": "submitted_by_user"},
+        "provenance": {"kind": "user_supplied"},
         "citation": {"source_ref": "Bron", "verification_status": "verified"},
         "thubut": {"label": "strong", "rationale": "handmatig: vastgesteld"},
         "form": {"kind": "atomic", "term": "p"},
@@ -226,7 +226,7 @@ def _stap(premissetype: str, schema: str, status: dict | None = None) -> dict:
                 "id": "p2",
                 "text": "De brug.",
                 "type": premissetype,
-                "provenance": {"kind": "submitted_by_user"},
+                "provenance": {"kind": "user_supplied"},
                 "citation": {"source_ref": "Bron", "verification_status": "verified"},
                 "thubut": {"label": "certain", "rationale": "handmatig: vastgesteld"},
                 "form": {
