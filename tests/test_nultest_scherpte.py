@@ -202,3 +202,113 @@ def test_geen_eindcijfer_als_tekenreeks(motor):
             continue
         verdacht.append((pad, waarde))
     assert verdacht == [], f"tekenreeksen die als cijfer te lezen zijn: {verdacht}"
+
+
+def _stap(premissetype: str, schema: str, status: dict | None = None) -> dict:
+    """Dezelfde argumentvorm, met instelbare inhoudelijke velden."""
+    premisse = {
+        "id": "p1",
+        "text": "Het feit.",
+        "type": premissetype,
+        "provenance": {"kind": "submitted_by_user"},
+        "citation": {"source_ref": "Bron", "verification_status": "verified"},
+        "thubut": {"label": "strong", "rationale": "handmatig: vastgesteld"},
+        "form": {"kind": "atomic", "term": "p"},
+    }
+    if status is not None:
+        premisse["status"] = status
+    return {
+        "schema_version": "1.0.0",
+        "claims": [{"id": "c1", "text": "De conclusie.", "form": {"kind": "atomic", "term": "q"}}],
+        "premises": [
+            premisse,
+            {
+                "id": "p2",
+                "text": "De brug.",
+                "type": premissetype,
+                "provenance": {"kind": "submitted_by_user"},
+                "citation": {"source_ref": "Bron", "verification_status": "verified"},
+                "thubut": {"label": "certain", "rationale": "handmatig: vastgesteld"},
+                "form": {
+                    "kind": "conditional",
+                    "antecedent": {"kind": "atomic", "term": "p"},
+                    "consequent": {"kind": "atomic", "term": "q"},
+                },
+            },
+        ],
+        "inferences": [{"id": "i1", "from": ["p1", "p2"], "to": "c1", "scheme": schema}],
+    }
+
+
+def test_het_premissetype_verandert_niets_aan_het_oordeel(motor, sessie):
+    """Randvoorwaarde §2.1: één motor, geen aparte rubric per soort premisse.
+
+    Zou er een regel in de rekencode zijn geplant die op het premissetype werkt,
+    dan wordt deze test rood. De typen komen uit de lookup-tabel, dus de test
+    groeit vanzelf mee als er een type bij komt.
+    """
+    from sqlalchemy import select
+
+    from bewijsmotor.db.model import LOOKUP_KLASSEN
+
+    typen = sorted(sessie.execute(select(LOOKUP_KLASSEN["premise_type"].key)).scalars())
+    assert len(typen) >= 7
+
+    uitkomsten = {}
+    for premissetype in typen:
+        beoordeling = motor.beoordeel(_stap(premissetype, "deductive"), actor="scherpte")[
+            "beoordelingen"
+        ][0]
+        uitkomsten[premissetype] = (
+            beoordeling["probative_force"]["label"],
+            beoordeling["weakest_element"]["ref"],
+            beoordeling["weakest_element"]["veld"],
+            beoordeling["insufficient_evidence"]["waarde"],
+            tuple(f["soort"] for f in beoordeling["fallacies"]),
+        )
+
+    verschillend = set(uitkomsten.values())
+    assert len(verschillend) == 1, f"het premissetype stuurt het oordeel: {uitkomsten}"
+
+
+def test_het_statuslabel_verandert_niets_aan_het_oordeel(motor):
+    """Statusafleiding hoort bij fase 4; fase 1 mag er niet stiekem op reageren."""
+    zonder = motor.beoordeel(_stap("revelation_text", "deductive"), actor="scherpte")
+    labels = [
+        {"label": "muhkam", "opposition": "mutashabih"},
+        {"label": "mansukh", "opposition": "nasikh"},
+        {"label": "mutashabih", "opposition": "muhkam"},
+    ]
+    verwacht = zonder["beoordelingen"][0]["probative_force"]["label"]
+    for status in labels:
+        met = motor.beoordeel(_stap("revelation_text", "deductive", status), actor="scherpte")
+        assert met["beoordelingen"][0]["probative_force"]["label"] == verwacht, (
+            f"statuslabel {status['label']} stuurt het oordeel"
+        )
+
+
+def test_het_schema_stuurt_de_vragenset_maar_niet_het_label(motor, sessie):
+    """Het schema bepaalt welke kritische vragen erbij horen, niet de sterkte.
+
+    De vragen komen uit de geseede vragenset en verschillen per schema; het
+    label mag daar niet van afhangen zolang geen vraag faalt.
+    """
+    from sqlalchemy import select
+
+    from bewijsmotor.db.model import LOOKUP_KLASSEN
+
+    schemas = sorted(sessie.execute(select(LOOKUP_KLASSEN["scheme"].key)).scalars())
+    labels = set()
+    vragensets = {}
+    for schema in schemas:
+        beoordeling = motor.beoordeel(_stap("revelation_text", schema), actor="scherpte")[
+            "beoordelingen"
+        ][0]
+        labels.add(beoordeling["probative_force"]["label"])
+        vragensets[schema] = len(beoordeling["open_critical_questions"])
+
+    assert len(labels) == 1, f"het schema stuurt de sterkte: {labels}"
+    assert len(set(vragensets.values())) > 1, (
+        "de vragenset hoort juist wél per schema te verschillen; anders wordt de "
+        "geseede vragenset niet gebruikt"
+    )

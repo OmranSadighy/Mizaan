@@ -10,7 +10,6 @@ Wat fase 1 met opzet niet doet, staat in elk rapport onder ``voorbehouden``.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import or_, select
@@ -76,14 +75,6 @@ VOORBEHOUDEN_FASE1 = (
     "Dit instrument beoordeelt de kwaliteit van bewijsvoering. Het beoordeelt geen waarheid en "
     "geen personen.",
 )
-
-
-@dataclass
-class Beoordelingsresultaat:
-    rapport: dict[str, Any]
-    graaf: Graaf
-    berekening: Berekening
-    vormanalyses: dict[str, VormAnalyse]
 
 
 # De kernregels waarop de motor in fase 1 daadwerkelijk steunt. Ontbreekt er
@@ -239,6 +230,9 @@ class Motor:
                         vorm=kandidaat.vorm,
                         basis=kandidaat.basis,
                         rationale=("toets: vormaanvulling. " + kandidaat.rationale),
+                        kernregel=self._kernregel_van(
+                            self.kernregel_van_basis, kandidaat.basis, "unstated_premise_basis"
+                        ),
                     )
                 )
             if analyse.status != "not_testable":
@@ -260,6 +254,9 @@ class Motor:
                         ),
                         vorm=None,
                         basis="term_coverage",
+                        kernregel=self._kernregel_van(
+                            self.kernregel_van_basis, "term_coverage", "unstated_premise_basis"
+                        ),
                         rationale=(
                             f"toets: termdekking. De term '{term}' staat in de conclusie en in "
                             "geen van de aangevoerde premissen. Termdekking is een heuristiek en "

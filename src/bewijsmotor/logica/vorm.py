@@ -380,6 +380,11 @@ class VormAnalyse:
     # Waar of de zoektocht naar mogelijk verzwegen premissen is overgeslagen.
     # Een lege kandidatenlijst betekent dan niet "er is niets gevonden".
     kandidaatzoektocht_overgeslagen: bool = False
+    # Waar wanneer de conclusie letterlijk als premisse voorkomt. Zo'n stap is
+    # formeel geldig maar draagt niets: zij vooronderstelt wat zij moet
+    # opleveren. Vorm en steun zijn twee dingen, en de motor houdt ze uit
+    # elkaar (kernregels vorm_versus_waarheid en steun_en_bewijslast).
+    zelfsteun: bool = False
 
 
 def _propositionele_drogredenen(
@@ -490,6 +495,22 @@ def _propositionele_kandidaten(
     ]
 
 
+def _categorisch_gelijkwaardig(links: dict[str, Any], rechts: dict[str, Any]) -> bool:
+    """Zeggen twee categorische vormen hetzelfde?
+
+    Van de vier vormen converteren alleen ``no`` en ``some``: "geen S is P" zegt
+    hetzelfde als "geen P is S", en "sommige S zijn P" hetzelfde als "sommige P
+    zijn S". ``all`` en ``some_not`` converteren niet.
+    """
+    if gelijk(links, rechts):
+        return True
+    if links["quantity"] != rechts["quantity"]:
+        return False
+    if links["quantity"] not in {"no", "some"}:
+        return False
+    return links["subject"] == rechts["predicate"] and links["predicate"] == rechts["subject"]
+
+
 def _categorische_kandidaten(
     premissen: list[dict[str, Any]], conclusie: dict[str, Any]
 ) -> list[Kandidaat]:
@@ -517,7 +538,7 @@ def _categorische_kandidaten(
                 "predicate": gezegde,
             }
             geldig, _, _ = syllogisme_geldig([gegeven, kandidaat], conclusie)
-            if geldig and all(k.tekst != weergave(kandidaat) for k in gevonden):
+            if geldig and not any(_categorisch_gelijkwaardig(k.vorm, kandidaat) for k in gevonden):
                 gevonden.append(
                     Kandidaat(
                         vorm=kandidaat,
@@ -564,11 +585,17 @@ def analyseer(
 
     if any(gelijk(p, doel) for p in genormaliseerd):
         return VormAnalyse(
-            status="invalid",
+            status="valid",
             rationale=(
-                "de conclusie komt letterlijk als premisse voor; de stap steunt daarmee op zichzelf"
+                "de conclusie komt letterlijk als premisse voor. Zo'n stap is formeel geldig, "
+                "want in elke toestand waarin de premissen waar zijn is de conclusie waar, maar "
+                "zij draagt niets: zij vooronderstelt wat zij moet opleveren. De motor rekent "
+                "haar daarom niet als steun (kernregel steun_en_bewijslast). Dat de vorm geldig "
+                "is en de steun ontbreekt, zijn twee verschillende dingen (kernregel "
+                "vorm_versus_waarheid)"
             ),
             toetssoort="propositioneel" if is_propositioneel(doel) else "categorisch",
+            zelfsteun=True,
             drogredenen=(
                 Drogreden(
                     "circular_reasoning",

@@ -28,5 +28,8 @@ class VerzwegenVoorstel:
     vorm: dict[str, Any] | None
     basis: str
     rationale: str
+    # De kernregel die de gebruikte toets draagt; welke dat is, staat in de
+    # lookup-tabel en niet in deze code.
+    kernregel: str
     proposed_by: str = "engine"
     confirmed: bool = False

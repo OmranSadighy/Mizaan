@@ -77,6 +77,11 @@ Er zijn er twee:
   die de conclusie in hun eentje al opleveren. Dat laatste sluit "neem de
   conclusie maar aan" uit. Van logisch gelijkwaardige kandidaten blijft er één
   over.
+* **Vormaanvulling, categorisch.** Bij een enthymeem met één categorische
+  premisse worden de aanvullingen gezocht die er een geldig syllogisme van maken.
+  Van de vier vormen converteren alleen "geen S is P" en "sommige S zijn P"; die
+  worden als één kandidaat geteld, zodat de lezer niet twee keer om bevestiging
+  van dezelfde aanname wordt gevraagd.
 * **Termdekking.** Een term uit de conclusie komt in geen enkele premisse voor.
   Dit is nadrukkelijk een heuristiek: de verbinding kan ook in de woorden zelf
   besloten liggen. De toets draait alleen als de vorm niet toetsbaar is, zodat
@@ -159,6 +164,19 @@ ontkenning van een vaststelling. Voor een premisse zonder bron is het kantelpunt
 Twee toetsen. Op vormniveau: de conclusie komt letterlijk als premisse voor. Op
 graafniveau: de steun voor een claim komt langs haar eigen premissen weer bij
 zichzelf uit, via premissen die een andere claim beweren.
+
+De vormtoets noemt zo'n stap **geldig**, niet ongeldig. Uit P volgt P; in elke
+toestand waarin de premissen waar zijn, is de conclusie waar. Het bezwaar is dat
+de stap niets draagt, niet dat de vorm faalt. Juist de kernregel die hier wordt
+aangeroepen, `vorm_versus_waarheid`, staat op dat onderscheid. De motor
+rapporteert de vorm dus als geldig, meldt de cirkelredenering apart, en zet het
+label van de stap op onbepaald omdat zij vooronderstelt wat zij moet opleveren
+(kernregel `steun_en_bewijslast`).
+
+Dat is een andere keuze dan bij onverenigbare premissen (§4). Daar heet de vorm
+wél ongeldig, omdat de klassieke geldigheid daar een conclusie zou dragen die
+nergens uit volgt. Hier draagt de vorm precies wat zij zegt te dragen: niets
+nieuws.
 
 De graaftoets gebruikt sterk samenhangende componenten (Tarjan). Een eenvoudige
 diepteweergave met een "al bezocht"-markering is niet genoeg: die vindt per

@@ -273,6 +273,7 @@ def bouw_beoordeling(
     # een soort bevinding draagt staat in de lookup-tabel, niet in deze code.
     gebruikte_kernregels = {"zwakste_schakel", "steun_en_bewijslast"}
     gebruikte_kernregels.update(d.kernregel for d in eigen_drogredenen)
+    gebruikte_kernregels.update(v.kernregel for v in eigen_verzwegen)
     if any(
         vormanalyses[ref].status != "not_testable"
         for ref in eigen_inferenties
@@ -336,6 +337,7 @@ def bouw_beoordeling(
                 "voorstel": v.voorstel,
                 "vorm": v.vorm,
                 "basis": v.basis,
+                "kernregel": v.kernregel,
                 "rationale": v.rationale,
                 "voorgesteld_door": v.proposed_by,
                 "bevestigd": v.confirmed,

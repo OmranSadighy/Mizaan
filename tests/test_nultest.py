@@ -47,8 +47,12 @@ def test_2_ontleedt_in_claims_premissen_en_inferenties(motor, leeg_profiel_is_le
         "p_sub",
         "p_brug2",
     ]
-    assert [i["ref"] for i in ontleding["inferenties"]] == ["i_tussen", "i_eind"]
-    assert {i["naar"] for i in ontleding["inferenties"]} == {"c_tussen", "c_eind"}
+    # Niet alleen de verwijzingen, maar de hele verbinding: een stap zonder
+    # premissen zou anders als geldige ontleding doorgaan.
+    assert {i["ref"]: (tuple(i["van"]), i["naar"]) for i in ontleding["inferenties"]} == {
+        "i_tussen": (("p_meting", "p_brug1"), "c_tussen"),
+        "i_eind": (("p_sub", "p_brug2"), "c_eind"),
+    }
 
     # De keten loopt over twee claims heen: de zwakste schakel van de eindclaim
     # ligt in de subconclusie, niet in een van haar eigen premissen.

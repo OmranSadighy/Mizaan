@@ -80,6 +80,11 @@ class LijnUitkomst:
     zwakste: Bijdrage | None
     alle_zwakste: list[Bijdrage]
     raakt_bronloos: bool
+    # Waarom deze lijn een premisse zonder bron raakt: eigen premissen die er
+    # geen noemen, of claims verderop in de keten waarvoor onvoldoende bewijs
+    # is. De uitleg moet de lezer naar de goede plek wijzen.
+    eigen_premissen_zonder_bron: list[str]
+    geerfd_van_claims: list[str]
 
 
 @dataclass
@@ -225,6 +230,10 @@ def bereken(
             label = overschrijving.inferentie[ref]
             herkomst = "overschrijving"
             rationale = "hypothetische waarde voor de kantelpuntanalyse"
+        elif analyse.zelfsteun:
+            label = schaal.laagste
+            herkomst = "formeel"
+            rationale = "de stap draagt niets: " + analyse.rationale
         elif analyse.status == "valid":
             label = schaal.hoogste
             herkomst = "formeel"
@@ -286,9 +295,18 @@ def bereken(
         stap = inferentie_uitkomst(inferentie_ref)
         elementen: list[Bijdrage] = []
         raakt_bronloos = False
+        eigen_zonder_bron: list[str] = []
+        geerfd: list[str] = []
         for premisse_ref in inferentie.van:
             uitkomst = premisse_uitkomst(premisse_ref)
             raakt_bronloos = raakt_bronloos or uitkomst.raakt_bronloos
+            if uitkomst.raakt_bronloos:
+                eigen_zonder_bron.extend(_bronloos_binnen(graaf, premisse_ref, premisse_uitkomsten))
+                geerfd.extend(
+                    ref
+                    for ref in _geerfde_claims(graaf, premisse_ref)
+                    if claim_uitkomsten.get(ref) and claim_uitkomsten[ref].onvoldoende_bewijs
+                )
             elementen.append(_diepste_zwakste(uitkomst, premisse_uitkomsten, schaal))
         elementen.append(Bijdrage("inference", inferentie_ref, "strength", stap.label))
         label = schaal.minimum(b.label for b in elementen)
@@ -305,6 +323,8 @@ def bereken(
             zwakste=zwakste[0] if zwakste else None,
             alle_zwakste=zwakste,
             raakt_bronloos=raakt_bronloos,
+            eigen_premissen_zonder_bron=sorted(set(eigen_zonder_bron)),
+            geerfd_van_claims=sorted(set(geerfd)),
         )
 
     # Claims in een steunkring eerst: een claim die erop steunt, moet hun
@@ -368,17 +388,33 @@ def bereken(
         label = lijn_uitkomsten[beste].label
 
         onvoldoende = len(bronloze_lijnen) == len(lijn_refs)
+        if bronloze_lijnen:
+            delen = []
+            for ref in sorted(bronloze_lijnen):
+                lijn = lijn_uitkomsten[ref]
+                if lijn.eigen_premissen_zonder_bron:
+                    delen.append(
+                        f"lijn '{ref}' steunt op de premissen "
+                        + ", ".join(lijn.eigen_premissen_zonder_bron)
+                        + ", die geen bron noemen"
+                    )
+                elif lijn.geerfd_van_claims:
+                    delen.append(
+                        f"lijn '{ref}' steunt op de claims "
+                        + ", ".join(lijn.geerfd_van_claims)
+                        + ", waarvoor onvoldoende bewijs is aangeleverd"
+                    )
+                else:  # pragma: no cover - defensief
+                    delen.append(f"lijn '{ref}' draagt niet")
+            kern = "; ".join(delen)
         if onvoldoende:
             uitleg = (
-                "elke aangeleverde bewijslijn voor deze claim bevat een premisse zonder bron; "
-                "er is daarom onvoldoende bewijs om te scoren"
+                "geen enkele bewijslijn van deze claim draagt: "
+                + kern
+                + ". Er is daarom onvoldoende bewijs om te scoren"
             )
         elif bronloze_lijnen:
-            uitleg = (
-                "een deel van de bewijslijnen bevat een premisse zonder bron: "
-                + ", ".join(sorted(bronloze_lijnen))
-                + ". Die lijnen dragen niet; de overige wel"
-            )
+            uitleg = kern + ". Die lijnen dragen niet; de overige wel"
         else:
             uitleg = (
                 "elke premisse in de aangeleverde bewijslijnen van deze claim, ook die in "
@@ -429,6 +465,30 @@ def bereken(
         cykels=cykels,
         bronloze_premissen=sorted(bronloos),
     )
+
+
+def _bronloos_binnen(
+    graaf: Graaf, premisse_ref: str, alle: dict[str, PremisseUitkomst]
+) -> list[str]:
+    """Premissen binnen deze premisse die zelf geen bron noemen."""
+    gevonden: list[str] = []
+    uitkomst = alle.get(premisse_ref)
+    if uitkomst is not None and not uitkomst.heeft_bron:
+        gevonden.append(premisse_ref)
+    for sub in graaf.premisse(premisse_ref).sub_premissen:
+        gevonden.extend(_bronloos_binnen(graaf, sub.ref, alle))
+    return gevonden
+
+
+def _geerfde_claims(graaf: Graaf, premisse_ref: str) -> list[str]:
+    """Claims die deze premisse of haar sub-premissen beweren."""
+    premisse = graaf.premisse(premisse_ref)
+    gevonden: list[str] = []
+    if premisse.asserts_claim:
+        gevonden.append(premisse.asserts_claim)
+    for sub in premisse.sub_premissen:
+        gevonden.extend(_geerfde_claims(graaf, sub.ref))
+    return gevonden
 
 
 def _som(bijdragen: list[Bijdrage]) -> str:

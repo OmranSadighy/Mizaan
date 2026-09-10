@@ -55,7 +55,6 @@ def test_geldige_vormen(premissen, conclusie):
             K("all", "kat", "hond"),
             "undistributed_middle",
         ),
-        ([A("p"), A("q")], A("p"), "circular_reasoning"),
         ([A("p"), N(A("p"))], A("q"), "contradictory_premises"),
     ],
 )
@@ -63,6 +62,21 @@ def test_ongeldige_vormen_met_naam(premissen, conclusie, drogreden):
     analyse = analyseer(premissen, conclusie)
     assert analyse.status == "invalid"
     assert drogreden in {d.soort for d in analyse.drogredenen}
+
+
+def test_cirkelvorm_is_geldig_maar_draagt_niets():
+    """P volgt uit P; de vorm faalt niet, de steun ontbreekt.
+
+    Juist de kernregel die hier wordt aangeroepen, vorm_versus_waarheid, staat
+    op dat onderscheid. De stap heet daarom geldig, met een cirkelbevinding
+    erbij en de vlag dat zij niets draagt.
+    """
+    analyse = analyseer([A("p"), A("q")], A("p"))
+    assert analyse.status == "valid"
+    assert analyse.zelfsteun is True
+    assert "circular_reasoning" in {d.soort for d in analyse.drogredenen}
+    assert "draagt niets" in analyse.rationale
+    assert "vooronderstelt wat zij moet opleveren" in analyse.rationale
 
 
 def test_tegenspraak_levert_geen_geldige_stap_op():
