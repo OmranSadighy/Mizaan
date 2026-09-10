@@ -277,3 +277,11 @@ def test_tegenstrijdige_premissen_steunen_op_de_non_contradictieregel(motor):
     bevinding = next(f for f in beoordeling["fallacies"] if f["soort"] == "contradictory_premises")
     assert bevinding["kernregel"] == "non_contradictie"
     assert "non_contradictie" in {r["key"] for r in beoordeling["kernel_rules_applied"]}
+
+
+def test_niet_gebouwde_gebruiksvorm_wordt_geweigerd(motor):
+    """Een vlag die niet uitgevoerd is, mag niet stilzwijgend als toetsen gelden."""
+    invoer = _basis()
+    invoer["use_form"] = "attack"
+    with pytest.raises(InvoerFout, match="wordt in deze fase niet uitgevoerd"):
+        motor.beoordeel(invoer, actor="test")

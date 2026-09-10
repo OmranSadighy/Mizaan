@@ -39,7 +39,7 @@ from ..db.model import (
     Submission,
 )
 from ..db.registry import haal_profiel, regelset_versie, schrijf_audit
-from ..fouten import OnbepaaldeProfielinstelling
+from ..fouten import InvoerFout, OnbepaaldeProfielinstelling
 from ..labels import Schaal
 from ..logica import vorm as vormlogica
 from ..logica.vorm import VormAnalyse
@@ -50,8 +50,14 @@ from .bevindingen import DrogredenBevinding, VerzwegenVoorstel
 from .graaf import Graaf, KritischeVraag, Premisse, Vocabulaires, bouw, steunkringen
 from .rapport import bouw_beoordeling
 
+# De vier gebruiksvormen bestaan als data (§4.4). Fase 1 voert er één uit; de
+# overige worden geweigerd in plaats van stilzwijgend als 'toetsen' behandeld.
+UITVOERBARE_GEBRUIKSVORMEN = frozenset({"assess"})
+
 VOORBEHOUDEN_FASE1 = (
     "Fase 1. De motor draait uitsluitend op de kern; er zijn geen inhoudelijke regels geladen.",
+    "Van de vier gebruiksvormen voert de motor alleen 'toetsen' uit. Vergelijken, aanvallen en "
+    "verdedigen bestaan in het schema en worden geweigerd zolang ze niet gebouwd zijn.",
     "Premissesterkte komt uit handmatige invoer. Meetinstrumenten komen in fase 3.",
     "Er zijn geen qawa'id en geen profielinstellingen die het oordeel sturen.",
     "De interpretatielaag draait niet. Een aangeleverde interpretation_ref wordt vastgelegd maar "
@@ -307,6 +313,14 @@ class Motor:
     ) -> dict[str, Any]:
         invoer = InzendingInvoer.model_validate(ruwe_invoer)
         graaf = bouw(invoer, self.vocab, MOTOR_VERSIE)  # stap 1
+        if graaf.gebruiksvorm not in UITVOERBARE_GEBRUIKSVORMEN:
+            raise InvoerFout(
+                f"gebruiksvorm '{graaf.gebruiksvorm}' bestaat wel in het schema maar wordt in "
+                "deze fase niet uitgevoerd. De motor doet nu uitsluitend "
+                f"{' en '.join(sorted(UITVOERBARE_GEBRUIKSVORMEN))}. Een beoordeling teruggeven "
+                "onder een vlag die niet uitgevoerd is, zou een onware bewering over de eigen "
+                "uitvoer zijn."
+            )
         profiel = haal_profiel(self.sessie, invoer.profile, invoer.profile_version)
         qawaid_geladen = list(
             self.sessie.execute(

@@ -217,13 +217,43 @@ def haal_profiel(sessie: Session, naam: str, versie: str | None = None) -> Profi
 
 
 def regelset_versie(sessie: Session) -> str:
-    """Vingerafdruk van de geldende regelset: kernregels plus qawa'id.
+    """Vingerafdruk van alle data die het oordeel stuurt.
 
-    Een tekstuele hash, geen getal. Verandert zodra een regel verandert, zodat
-    een beoordeling reproduceerbaar aan haar regelset hangt.
+    Een tekstuele hash, geen getal. Zij dekt de kernregels, de qawa'id, de
+    lookup-rijen voor zover die het rekenen sturen, en de sjablonen van de
+    kritische vragen. Dat moet zo: omdat regels data zijn, verandert het oordeel
+    mee met een gewijzigde rij, en een vingerafdruk die zo'n wijziging niet ziet
+    maakt een beoordeling onreproduceerbaar (randvoorwaarde 2.8).
+
+    Alleen de sturende velden tellen mee. Een gewijzigde Nederlandse vertaling
+    van een label verandert het oordeel niet en de vingerafdruk dus ook niet.
     """
     kern = sessie.execute(select(KernelRule).order_by(KernelRule.key)).scalars().all()
     qawaid = sessie.execute(select(Qaida).order_by(Qaida.key)).scalars().all()
+
+    vocabulaires: dict[str, list[dict[str, Any]]] = {}
+    for naam, klasse in sorted(LOOKUP_KLASSEN.items()):
+        rijen = sessie.execute(select(klasse).order_by(klasse.key)).scalars().all()
+        vocabulaires[naam] = [
+            {
+                "key": rij.key,
+                "rangorde": rij.rangorde,
+                "kernregel": rij.kernregel,
+                "actief": bool(rij.actief),
+            }
+            for rij in rijen
+        ]
+
+    vragen = (
+        sessie.execute(
+            select(SchemeCriticalQuestion).order_by(
+                SchemeCriticalQuestion.scheme, SchemeCriticalQuestion.volgnummer
+            )
+        )
+        .scalars()
+        .all()
+    )
+
     ruggengraat = {
         "kernel_rules": [
             {"key": r.key, "version": r.version, "statement_nl": r.statement_nl} for r in kern
@@ -231,6 +261,20 @@ def regelset_versie(sessie: Session) -> str:
         "qawaid": [
             {"key": q.key, "version": q.version, "status": q.status, "function": q.function}
             for q in qawaid
+        ],
+        "vocabulaires": vocabulaires,
+        "critical_questions": [
+            {
+                "scheme": v.scheme,
+                "volgnummer": v.volgnummer,
+                "origin": v.origin,
+                "profile_id": v.profile_id,
+                "added_by_qaida_id": v.added_by_qaida_id,
+                "standaard_effect": v.standaard_effect,
+                "beantwoordbaar_door_motor": v.beantwoordbaar_door_motor,
+                "version": v.version,
+            }
+            for v in vragen
         ],
     }
     ruw = json.dumps(ruggengraat, sort_keys=True, ensure_ascii=False).encode("utf-8")

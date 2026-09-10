@@ -373,7 +373,22 @@ class Premise(Base):
     # Welke claim deze premisse beweert; maakt ketens over claims heen mogelijk.
     asserts_claim_id = Column(String, ForeignKey("claim.id"), nullable=True)
 
-    __table_args__ = (CheckConstraint("length(trim(text)) > 0", name="ck_premisse_tekst"),)
+    __table_args__ = (
+        CheckConstraint("length(trim(text)) > 0", name="ck_premisse_tekst"),
+        # Een statuslabel draagt altijd de tegenstelling waarin het gebruikt
+        # wordt (§5.6): muhkam tegenover mutashabih is iets anders dan muhkam
+        # tegenover mansukh. Een label zonder tegenstelling is betekenisloos en
+        # wordt daarom op schemaniveau geweigerd.
+        # De IS NOT NULL-toetsen staan er met opzet: zonder hen levert de
+        # vergelijking NULL op in plaats van onwaar, en een CHECK die NULL
+        # oplevert laat de rij door.
+        CheckConstraint(
+            "(status_label IS NULL AND status_opposition IS NULL) OR ("
+            "status_label IS NOT NULL AND status_opposition IS NOT NULL "
+            "AND length(trim(status_label)) > 0 AND length(trim(status_opposition)) > 0)",
+            name="ck_premisse_status_tegenstelling",
+        ),
+    )
 
 
 class Interpretation(Base):

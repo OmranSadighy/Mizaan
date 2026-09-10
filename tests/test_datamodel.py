@@ -294,3 +294,60 @@ def test_seed_schrijft_een_auditspoor(sessie):
     for regel in regels:
         assert regel.actor
         assert regel.reden
+
+
+def test_statuslabel_zonder_tegenstelling_wordt_geweigerd(sessie):
+    """§5.6: het label draagt altijd de tegenstelling waarin het gebruikt wordt."""
+    sessie.add(
+        Premise(
+            external_ref="p_status",
+            text="tekst",
+            proposed_by="user",
+            provenance="submitted_by_user",
+            status_label="muhkam",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        sessie.flush()
+    sessie.rollback()
+
+    sessie.add(
+        Premise(
+            external_ref="p_status_ok",
+            text="tekst",
+            proposed_by="user",
+            provenance="submitted_by_user",
+            status_label="muhkam",
+            status_opposition="mutashabih",
+        )
+    )
+    sessie.flush()
+
+
+def test_regelsetversie_beweegt_mee_met_de_data(sessie):
+    """Regels zijn data, dus moet de vingerafdruk elke sturende rij dekken."""
+    voor = regelset_versie(sessie)
+
+    sessie.execute(
+        LOOKUP_KLASSEN["fallacy_type"]
+        .__table__.update()
+        .where(LOOKUP_KLASSEN["fallacy_type"].key == "undistributed_middle")
+        .values(kernregel="non_contradictie")
+    )
+    sessie.flush()
+    assert regelset_versie(sessie) != voor, (
+        "een gewijzigde koppeling tussen bevinding en kernregel stuurt het oordeel "
+        "en hoort de vingerafdruk te veranderen"
+    )
+
+    na_koppeling = regelset_versie(sessie)
+    sessie.execute(
+        LOOKUP_KLASSEN["fallacy_type"]
+        .__table__.update()
+        .where(LOOKUP_KLASSEN["fallacy_type"].key == "undistributed_middle")
+        .values(label_nl="middenterm niet verdeeld")
+    )
+    sessie.flush()
+    assert regelset_versie(sessie) == na_koppeling, (
+        "een andere vertaling stuurt het oordeel niet en hoort de vingerafdruk niet te raken"
+    )
