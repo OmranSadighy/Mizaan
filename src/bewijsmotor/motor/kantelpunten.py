@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from ..labels import Schaal
 from ..logica.vorm import VormAnalyse
 from .berekening import Overschrijving, bereken
-from .graaf import Graaf
+from .graaf import Graaf, steunkringen
 
 
 @dataclass(frozen=True)
@@ -69,13 +69,16 @@ def zoek(
     vormanalyses: Mapping[str, VormAnalyse],
     claim_ref: str,
 ) -> list[Kantelpunt]:
-    basis = bereken(graaf, schaal, vormanalyses)
+    # De steunkringen zijn een eigenschap van de ontleding en veranderen niet
+    # door een hypothetische waarde. Eén keer bepalen volstaat.
+    cykels = steunkringen(graaf)
+    basis = bereken(graaf, schaal, vormanalyses, cykels=cykels)
     huidig_label = basis.claims[claim_ref].label
     premisse_refs, inferentie_refs = relevante_elementen(graaf, claim_ref)
     gevonden: list[Kantelpunt] = []
 
     def probeer(overschrijving: Overschrijving) -> str:
-        opnieuw = bereken(graaf, schaal, vormanalyses, overschrijving)
+        opnieuw = bereken(graaf, schaal, vormanalyses, overschrijving, cykels=cykels)
         return opnieuw.claims[claim_ref].label
 
     def registreer_labelreeks(

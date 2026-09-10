@@ -110,9 +110,11 @@ def bereken(
     schaal: Schaal,
     vormanalyses: Mapping[str, VormAnalyse],
     overschrijving: Overschrijving = LEEG,
+    cykels: list[tuple[str, ...]] | None = None,
 ) -> Berekening:
     afhankelijk = claim_afhankelijkheden(graaf)
-    cykels = zoek_cykels(afhankelijk)
+    if cykels is None:
+        cykels = zoek_cykels(afhankelijk)
     in_cykel: set[str] = {knoop for cykel in cykels for knoop in cykel}
     volgorde = topologische_volgorde(afhankelijk, in_cykel)
 
@@ -299,7 +301,9 @@ def bereken(
             raakt_bronloos=raakt_bronloos,
         )
 
-    for claim_ref in [*volgorde, *sorted(in_cykel)]:
+    # Claims in een steunkring eerst: een claim die erop steunt, moet hun
+    # uitkomst al kunnen aflezen in plaats van haar te moeten raden.
+    for claim_ref in [*sorted(in_cykel), *volgorde]:
         if claim_ref in in_cykel:
             claim_uitkomsten[claim_ref] = ClaimUitkomst(
                 ref=claim_ref,

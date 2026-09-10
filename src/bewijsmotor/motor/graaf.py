@@ -395,6 +395,16 @@ def zoek_cykels(afhankelijk: dict[str, set[str]]) -> list[tuple[str, ...]]:
     return gevonden
 
 
+def steunkringen(graaf: Graaf) -> list[tuple[str, ...]]:
+    """De steunkringen tussen claims.
+
+    Dit is een eigenschap van de ontleding, niet van de zekerheidsberekening.
+    Zij wordt daarom in stap 1 bepaald, zodat stap 7 haar kan gebruiken zonder
+    de uitkomst van stap 10 te raadplegen (B2: geen stap raadpleegt een latere).
+    """
+    return zoek_cykels(claim_afhankelijkheden(graaf))
+
+
 def topologische_volgorde(afhankelijk: dict[str, set[str]], in_cykel: set[str]) -> list[str]:
     """Claims in de volgorde waarin ze berekend kunnen worden."""
     klaar: list[str] = []

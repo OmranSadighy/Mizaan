@@ -185,12 +185,17 @@ def bouw_beoordeling(
     ]
     eigen_verzwegen = [v for v in verzwegen if v.inferentie_ref in eigen_inferenties]
 
+    # De zwakste-schakelregel en de steunregel worden bij elke berekening
+    # toegepast. De overige komen uit de bevindingen zelf, en welke kernregel
+    # een soort bevinding draagt staat in de lookup-tabel, niet in deze code.
     gebruikte_kernregels = {"zwakste_schakel", "steun_en_bewijslast"}
     gebruikte_kernregels.update(d.kernregel for d in eigen_drogredenen)
-    if any(analyse.status != "not_testable" for analyse in vormanalyses.values()):
+    if any(
+        vormanalyses[ref].status != "not_testable"
+        for ref in eigen_inferenties
+        if ref in vormanalyses
+    ):
         gebruikte_kernregels.add("vorm_versus_waarheid")
-    if berekening.cykels:
-        gebruikte_kernregels.add("non_contradictie")
 
     return {
         "claim_ref": claim_ref,

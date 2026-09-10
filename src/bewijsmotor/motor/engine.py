@@ -47,7 +47,7 @@ from ..schemas.invoer import InzendingInvoer
 from . import kantelpunten as kantelmodule
 from .berekening import Berekening, bereken
 from .bevindingen import DrogredenBevinding, VerzwegenVoorstel
-from .graaf import Graaf, KritischeVraag, Premisse, Vocabulaires, bouw
+from .graaf import Graaf, KritischeVraag, Premisse, Vocabulaires, bouw, steunkringen
 from .rapport import bouw_beoordeling
 
 VOORBEHOUDEN_FASE1 = (
@@ -258,7 +258,10 @@ class Motor:
     # ------------------------------------------------------------------
 
     def _drogredenen(
-        self, graaf: Graaf, analyses: dict[str, VormAnalyse], berekening: Berekening
+        self,
+        graaf: Graaf,
+        analyses: dict[str, VormAnalyse],
+        cykels: list[tuple[str, ...]],
     ) -> list[DrogredenBevinding]:
         gevonden: list[DrogredenBevinding] = []
         for ref, analyse in analyses.items():
@@ -274,7 +277,7 @@ class Motor:
                         ),
                     )
                 )
-        for kring in berekening.cykels:
+        for kring in cykels:
             # Elke claim in de kring krijgt de bevinding in haar eigen rapport.
             # Dat is geen dubbel tellen: het label wordt er niet door verlaagd,
             # en zonder dit zou een claim in een steunkring er schoon uitzien.
@@ -311,11 +314,12 @@ class Motor:
             ).scalars()
         )
 
+        cykels = steunkringen(graaf)  # eigenschap van de ontleding, stap 1
         analyses = self._vormanalyses(graaf)  # stap 2
         verzwegen = self._verzwegen_premissen(graaf, analyses)
         self._vul_kritische_vragen(graaf, analyses, profiel)  # stap 6
-        rekening = bereken(graaf, self.schaal, analyses)  # stap 10
-        drogredenen = self._drogredenen(graaf, analyses, rekening)  # stap 7
+        drogredenen = self._drogredenen(graaf, analyses, cykels)  # stap 7
+        rekening = bereken(graaf, self.schaal, analyses, cykels=cykels)  # stap 10
 
         metadata = {
             "profiel_naam": profiel.name,

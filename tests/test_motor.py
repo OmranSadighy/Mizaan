@@ -207,3 +207,73 @@ def test_dezelfde_argumentvorm_krijgt_hetzelfde_label(motor):
     b = motor.beoordeel(bouw("partij B"), actor="test")["beoordelingen"][0]
     assert a["probative_force"]["label"] == b["probative_force"]["label"]
     assert a["weakest_element"]["ref"] == b["weakest_element"]["ref"]
+
+
+def test_claim_die_op_een_steunkring_rust_leest_haar_uitkomst_af(motor):
+    """B2-volgorde: kringclaims worden eerst berekend, niet geraden."""
+    invoer = lees_voorbeeld("nultest_drogredenen.json")
+    invoer["claims"].append(
+        {
+            "id": "c_top",
+            "text": "Het oordeel steunt op de overlevering.",
+            "form": {"kind": "atomic", "term": "oordeel"},
+        }
+    )
+    invoer["premises"].append(
+        {
+            "id": "p_top",
+            "text": "De overlevering is betrouwbaar.",
+            "type": "transmitted_report",
+            "provenance": {"kind": "submitted_by_user"},
+            "asserts_claim": "c_kring1",
+            "form": {"kind": "atomic", "term": "overlevering_betrouwbaar"},
+        }
+    )
+    invoer["premises"].append(
+        {
+            "id": "p_top_brug",
+            "text": "Is de overlevering betrouwbaar, dan geldt het oordeel.",
+            "type": "rational_intuition",
+            "provenance": {"kind": "submitted_by_user"},
+            "citation": {"source_ref": "Aangenomen regel 3", "verification_status": "unverified"},
+            "thubut": {"label": "certain", "rationale": "handmatig: als aanname aangeleverd"},
+            "form": {
+                "kind": "conditional",
+                "antecedent": {"kind": "atomic", "term": "overlevering_betrouwbaar"},
+                "consequent": {"kind": "atomic", "term": "oordeel"},
+            },
+        }
+    )
+    invoer["inferences"].append(
+        {"id": "i_top", "from": ["p_top", "p_top_brug"], "to": "c_top", "scheme": "deductive"}
+    )
+
+    uitvoer = motor.beoordeel(invoer, actor="test")
+    top = next(b for b in uitvoer["beoordelingen"] if b["claim_ref"] == "c_top")
+    assert top["probative_force"]["label"] == "undetermined"
+    assert top["weakest_element"]["soort"] == "claim"
+    assert top["weakest_element"]["ref"] == "c_kring1"
+    assert top["insufficient_evidence"]["waarde"] is True
+    assert top["steunkring"]["kringen"], "de kring moet in het rapport zichtbaar zijn"
+
+
+def test_tegenstrijdige_premissen_steunen_op_de_non_contradictieregel(motor):
+    """Uit een tegenspraak volgt formeel alles; de motor rekent dat niet als steun."""
+    invoer = _basis()
+    invoer["premises"][1] = {
+        "id": "p2",
+        "text": "Het feit is niet zo.",
+        "type": "sense_observation",
+        "provenance": {"kind": "submitted_by_user"},
+        "citation": {"source_ref": "Bron", "verification_status": "verified"},
+        "thubut": {"label": "certain", "rationale": "handmatig: ook dit is waargenomen"},
+        "form": {"kind": "negation", "of": {"kind": "atomic", "term": "p"}},
+    }
+    beoordeling = motor.beoordeel(invoer, actor="test")["beoordelingen"][0]
+
+    assert beoordeling["probative_force"]["label"] == "undetermined"
+    soorten = {f["soort"] for f in beoordeling["fallacies"]}
+    assert "contradictory_premises" in soorten
+    bevinding = next(f for f in beoordeling["fallacies"] if f["soort"] == "contradictory_premises")
+    assert bevinding["kernregel"] == "non_contradictie"
+    assert "non_contradictie" in {r["key"] for r in beoordeling["kernel_rules_applied"]}
