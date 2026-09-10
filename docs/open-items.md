@@ -10,6 +10,12 @@ vervangen door de nederlaaggraaf uit B3; de convergentieregel wordt vervangen
 zodra de afbeelding van labels op kansen als qaida bestaat. Elk rapport noemt
 onder `interim_regels` welke regel wanneer vervalt.
 
+Dit hoeft niemand te onthouden: `tests/test_interim_verwijderplicht.py` slaat
+aan zodra een vervanger bestaat en de interim-regel er nog is, en ook wanneer
+iemand een regel weghaalt voordat de vervanger er is. De faalmelding zegt welke
+sporen van het nieuwe mechanisme zijn aangetroffen en waar de oude regel moet
+worden weggehaald.
+
 **`stale` wordt gezet.** De kolom en het overzicht
 `v_verouderde_beoordelingen` bestaan en werken, maar in fase 1 verandert er
 niets waardoor een beoordeling verouderen kan: er zijn geen qawa'id. Zodra die

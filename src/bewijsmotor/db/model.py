@@ -473,8 +473,11 @@ class SchemeCriticalQuestion(Base):
     vraag_en = Column(Text, nullable=True)
     standaard_effect = Column(String, _fk("critical_question_effect"), nullable=False)
     origin = Column(String, _fk("critical_question_origin"), nullable=False)
-    # §5.8: waaraan een basisvraag is ontleend, bijvoorbeeld walton_2008.
-    herkomst_bron = Column(Text, nullable=True)
+    # §5.8: waaraan de vraag ontleend is. Bij een basisvraag een
+    # literatuurverwijzing (bv. walton_2008), bij een profielvraag een
+    # verwijzing naar de qaida die haar toevoegt; die staat daarnaast als
+    # vreemde sleutel in added_by_qaida_id, zodat de verwijzing integer blijft.
+    source_ref = Column(Text, nullable=True)
     added_by_qaida_id = Column(String, ForeignKey("qaida.id"), nullable=True)
     profile_id = Column(String, ForeignKey("profile.id"), nullable=True)
     # Naam van een motorcapaciteit die deze vraag zelf kan beantwoorden.

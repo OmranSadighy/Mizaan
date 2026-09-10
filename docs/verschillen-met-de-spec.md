@@ -117,10 +117,9 @@ gedrag: een basisvraag hoort bij het schema, een profielvraag bij een qaida.
 vragen dragen `walton_2008`, behalve de vragen bij het deductieve schema, die
 `klassieke_logica` dragen omdat ze niet van Walton komen.
 
-**Mogelijke aanpassing van de spec.** Als u met "herkomstveld" precies dit
-bedoelde, dan is de tekst compleet en heb ik hem goed gelezen. Bedoelde u er het
-onderscheid base/profile mee, dan is er een tweede veld nodig, want de
-bronvermelding kan dat onderscheid niet dragen.
+**Opgelost.** De opdrachtgever heeft de splitsing overgenomen. §5.8 kent nu
+`origin` (base of profile, stuurt gedrag) en `source_ref` (waaraan de vraag
+ontleend is). Het veld heet in de code sindsdien `source_ref`.
 
 ## 6. `superseded_by` (§5.12)
 
@@ -138,11 +137,9 @@ is de rij wier `supersedes` naar deze wijst. Er gaat dus geen informatie
 verloren, en de append-only garantie blijft hard afgedwongen door
 databasetriggers. Het overzicht `v_beoordeling_keten` geeft beide richtingen.
 
-**Als u de kolom toch wilt**, dan moet de trigger één uitzondering krijgen: het
-eenmalig vullen van `superseded_by` wanneer die nog leeg is. Dat is te doen, maar
-het verzwakt de garantie die de rest van de paragraaf vraagt. Mijn voorstel is de
-spec op dit punt aan te passen naar "`superseded_by` is af te leiden en wordt als
-overzicht aangeboden".
+**Opgelost.** De opdrachtgever heeft dit als fout in de specificatie erkend.
+§5.12 zegt nu dat `superseded_by` geen kolom is maar een afgeleid overzicht, met
+de redenering erbij.
 
 ## 7. Afhankelijkheidssoorten (§5.12)
 
@@ -157,7 +154,12 @@ afhangt. Verandert er een, dan is precies dat de wijziging waarvan §5.12 zegt d
 het systeem moet kunnen melden welke beoordelingen verouderd zijn. Zonder deze
 soort zou een kernregelwijziging onzichtbaar blijven in het register.
 
-**Voorstel.** Neem `kernel_rule` op in de opsomming in §5.12.
+**Opgelost.** `kernel_rule` staat nu in de opsomming in §5.12. De opdrachtgever
+voegde er een reden bij die ik niet kon kennen: de kernset is in dit project al
+een keer herzien. "Bewijslast bij de bewerende partij" stond er eerst in en is
+eruit gehaald toen bleek dat de zelfvernietigingstest er niet op sloot.
+Onveranderlijk betekent dat de applicatie ze niet kan wijzigen, niet dat de set
+nooit verandert.
 
 ## 8. Corpustabellen (§5.13)
 
@@ -222,3 +224,18 @@ Deze had ik goed gelezen en er is niets aan veranderd:
   vast waarvan zij afhing.
 * De twee velden die ik buiten §5 had toegevoegd, `premise.asserts_claim` en
   `assessment.use_form`, zijn door de opdrachtgever overgenomen.
+
+
+---
+
+## Afgehandeld
+
+De drie punten waarop ik afweek zijn door de opdrachtgever beoordeeld. Twee
+bleken fouten in de specificatie en zijn daar hersteld; bij het derde was mijn
+lezing scherper dan de tekst en is de tekst gesplitst. Er staat sindsdien geen
+verschil meer open tussen de code en de specificatie.
+
+Wat er sinds die ronde is bijgekomen: §4.5 kent nu een **verwijderplicht**. Elke
+interim-regel krijgt een test die faalt zodra het vervangende mechanisme bestaat
+en de regel er nog is. Zie `docs/conventies-fase1.md` §20 en
+`tests/test_interim_verwijderplicht.py`.

@@ -535,4 +535,4 @@ def test_basisvragen_dragen_hun_herkomstbron(sessie):
         .all()
     )
     assert vragen
-    assert all(vraag.herkomst_bron == "walton_2008" for vraag in vragen)
+    assert all(vraag.source_ref == "walton_2008" for vraag in vragen)

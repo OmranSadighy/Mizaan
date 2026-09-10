@@ -121,6 +121,8 @@ Deze functies worden nu niet gebouwd. Onderstaande eisen gelden vanaf het moment
 
 Deze regels gelden **alleen** in fase 1 en worden vervangen zodra het genoemde mechanisme bestaat. Markeer ze in de code als interim, met verwijzing naar deze paragraaf.
 
+**Verwijderplicht.** Elke interim-regel krijgt een test die faalt zodra het vervangende mechanisme bestaat en de interim-regel er nog is. Een interim-regel die stil blijft staan is de meest voorspelbare fout in een gefaseerd bouwplan; deze test is de enige betrouwbare bewaking ertegen.
+
 - **Gefaalde kritische vraag.** Een kritische vraag met status `failed` plafonneert het label van de inferentie op `undetermined`, en de rationale noemt de vraag. Reden: zonder de aanvalsgraaf zou de motor anders een inferentie als sterk rapporteren die hij zelf als gebroken heeft gemarkeerd, en dat is tegenstrijdige uitvoer. Een `unanswered` vraag verlaagt niets; die wordt alleen gerapporteerd als open vraag en kantelpunt. Vervalt in fase 2, wanneer B3 de nederlaaggraaf levert.
 - **Convergente steun.** Binnen één bewijslijn geldt minimum over de keten; over onafhankelijke lijnen heen geldt maximum. Geen verhoging door convergentie. Reden: noisy-OR vereist een afbeelding van labels op kansen, en die afbeelding is een qaida. Vervalt in fase 2.
 - **Verzwegen premissen.** Detectie gebeurt structureel: bij deductieve inferenties met opgegeven vorm door te bepalen welke premisse ontbreekt voor een geldig patroon, en bij overige inferenties door termdekking (een term in de conclusie die in geen enkele premisse voorkomt). Termdekking is een **heuristiek**, geen bewijs: de uitvoer luidt "mogelijk verzwegen premisse" en de rationale noemt de gebruikte toets. Het systeem beweert nooit dat er een gat is. Vervalt of wordt aangevuld in fase 5.
@@ -161,7 +163,14 @@ Tabel, geen enum. Minstens: revelation_text, transmitted_report, consensus_claim
 ### 5.8 `inference`
 `from[]` (premissen), `to` (claim of subconclusie), `scheme` (expert_opinion | analogy | precedent | sign | consequences | practical_reasoning | ignorance_or_silence | inconsistent_commitment | deductive), `interpretation_ref` (**verplicht** wanneer `from` een tekstpremisse bevat; ontbreekt hij, dan is er een verzwegen premisse en stopt de motor met een melding), `critical_questions[]` — elk `{question, status: answered | unanswered | failed, effect: undercut | undermine | none}`, `strength`.
 
-Schema's en hun standaard vragensets zijn **seed-data**, geen code. Het schema moet toelaten dat een profiel de vragenset van een schema **uitbreidt**: qiyas voegt later de masalik al-illah-vragen toe aan het analogieschema. Basisvragen krijgen een herkomstveld (bv. `walton_2008`), profielvragen verwijzen naar de qaida die ze toevoegt. Dit nu regelen is goedkoop; later is het een migratie.
+Schema's en hun standaard vragensets zijn **seed-data**, geen code. Het schema moet toelaten dat een profiel de vragenset van een schema **uitbreidt**: qiyas voegt later de masalik al-illah-vragen toe aan het analogieschema. Dit nu regelen is goedkoop; later is het een migratie.
+
+Een kritische vraag draagt daarom **twee** velden, die verschillende dingen doen:
+
+- `origin` (base | profile) — stuurt gedrag: een basisvraag hoort bij het schema zelf en geldt altijd, een profielvraag geldt alleen wanneer het toevoegende profiel actief is.
+- `source_ref` — zegt waaraan de vraag ontleend is: een literatuurverwijzing bij een basisvraag (bv. `walton_2008`), of een verwijzing naar de qaida die haar toevoegt bij een profielvraag.
+
+Eén veld kan beide niet dragen: een bronvermelding zegt niets over of de vraag altijd geldt.
 
 ### 5.9 `assessment`
 `claim_ref`, `profile_version`, `competence_level`, `engine_version`, `probative_force` (score), `dialectical_force[]` `{against_profile, score}`, `falsifiability_exposure` (hoeveel de claim uitsluit; los van sterkte), `weakest_element` (verwijzing), `open_critical_questions[]`, `fallacies[]`, `tipping_points[]` `{element, current_label, change_needed, would_flip_to}`, `insufficient_evidence` (bool + uitleg).
@@ -176,11 +185,15 @@ Elke wijziging aan qaida, profiel of kernel_rule, met wie, wanneer, waarom.
 
 Het instrument houdt bij wat het heeft getoetst en wat daaruit is voortgekomen. Dit is geen logboek maar een groeiend kennisbestand; het is de reden dat een gebruiker later kan zien welke stelregels de toets hebben doorstaan en welke niet.
 
-**`assessment` is append-only.** Een herbeoordeling maakt een nieuwe rij en overschrijft nooit. Alleen zo blijft zichtbaar hoe een oordeel veranderde toen een regel werd bijgesteld. Voeg `supersedes` (verwijzing naar de vorige beoordeling van dezelfde claim onder hetzelfde profiel) en `superseded_by` toe.
+**`assessment` is append-only.** Een herbeoordeling maakt een nieuwe rij en overschrijft nooit. Alleen zo blijft zichtbaar hoe een oordeel veranderde toen een regel werd bijgesteld. De nieuwe rij krijgt `supersedes` (verwijzing naar de vorige beoordeling van dezelfde claim onder hetzelfde profiel); die wordt bij het invoegen geschreven en raakt de oudere rij niet.
+
+`superseded_by` is **geen kolom maar een afgeleid overzicht**. Een kolom zou een terugschrijfactie op de oudere rij vereisen en daarmee de append-only-garantie breken voor precies het veld dat die garantie moet documenteren. De vooruitverwijzing is exact af te leiden uit `supersedes`, dus er gaat niets verloren.
 
 **`qaida_status_history`** — `qaida_ref`, `from_status`, `to_status`, `changed_at`, `reason`, `triggering_assessment_ref` (optioneel), `changed_by`. Hiermee is te beantwoorden: welke regels zijn voorgesteld, welke zijn getoetst, welke hebben het overleefd, welke zijn afgevallen en waarop. Elke statuswijziging schrijft hier een rij; het `status`-veld op `qaida` is slechts de huidige stand.
 
-**`assessment_dependency`** — `assessment_ref`, `depends_on_kind` (qaida | interpretation | premise | profile), `depends_on_ref`, `depends_on_version`. Bij het berekenen van een beoordeling registreert de motor elk element waarop de uitkomst steunt. Daarmee kan het systeem na een wijziging melden welke eerdere beoordelingen verouderd zijn en welke niet. Een beoordeling met een verouderde afhankelijkheid krijgt `stale = true` en wordt nooit stilzwijgend herrekend.
+**`assessment_dependency`** — `assessment_ref`, `depends_on_kind` (qaida | interpretation | premise | profile | kernel_rule), `depends_on_ref`, `depends_on_version`. Bij het berekenen van een beoordeling registreert de motor elk element waarop de uitkomst steunt. Daarmee kan het systeem na een wijziging melden welke eerdere beoordelingen verouderd zijn en welke niet. Een beoordeling met een verouderde afhankelijkheid krijgt `stale = true` en wordt nooit stilzwijgend herrekend.
+
+`kernel_rule` hoort in deze opsomming omdat kernregels versioneerde records zijn waar een oordeel werkelijk van afhangt. Ze zijn onveranderlijk in de zin dat de applicatie ze niet kan wijzigen of verwijderen, maar de kernset kan bij een herziening van dit document veranderen — dat is in dit project ook gebeurd. Zonder deze soort blijft zo'n wijziging onzichtbaar in het register.
 
 **Afgeleide overzichten** (views, geen aparte opslag): regels die de toets hebben doorstaan en actief zijn; regels die zijn afgevallen met reden en aanleiding; regels die op elkaar steunen; beoordelingen die verouderd zijn door een recente wijziging.
 

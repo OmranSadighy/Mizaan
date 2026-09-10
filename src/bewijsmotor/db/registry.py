@@ -146,7 +146,7 @@ def laad_seed(sessie: Session, seed_map: Path | None = None, actor: str = "seed"
                 vraag_en=vraag.get("vraag_en"),
                 standaard_effect=vraag["standaard_effect"],
                 origin="base",
-                herkomst_bron=vraag.get("herkomst_bron", vragen.get("herkomst_bron")),
+                source_ref=vraag.get("source_ref", vragen.get("source_ref")),
                 beantwoordbaar_door_motor=vraag.get("beantwoordbaar_door_motor"),
                 version=vragen["versie"],
             )

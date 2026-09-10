@@ -45,6 +45,7 @@ from ..fouten import (
     OnbepaaldeProfielinstelling,
     OntbrekendeKern,
 )
+from ..interim import INTERIM_REGELS
 from ..labels import Schaal
 from ..logica import vorm as vormlogica
 from ..logica.vorm import VormAnalyse
@@ -54,35 +55,6 @@ from .berekening import Berekening, bereken
 from .bevindingen import DrogredenBevinding, VerzwegenVoorstel
 from .graaf import Graaf, KritischeVraag, Premisse, Vocabulaires, bouw, steunkringen
 from .rapport import bouw_beoordeling
-
-# De drie interim-regels van §4.5, zoals de motor ze toepast. Ze gelden alleen
-# in fase 1 en de plek waar elk wordt toegepast draagt dezelfde verwijzing.
-INTERIM_REGELS_FASE1 = (
-    {
-        "regel": "gefaalde kritische vraag",
-        "spec": "§4.5",
-        "werking": "een kritische vraag met status 'gefaald' plafonneert het label van de "
-        "inferentie op onbepaald, en de rationale noemt de vraag",
-        "vervalt": "fase 2, wanneer B3 de nederlaaggraaf levert",
-        "toegepast_in": "motor/berekening.py",
-    },
-    {
-        "regel": "convergente steun",
-        "spec": "§4.5",
-        "werking": "binnen een bewijslijn geldt het minimum, over onafhankelijke lijnen heen "
-        "het maximum; geen verhoging door convergentie",
-        "vervalt": "fase 2",
-        "toegepast_in": "motor/berekening.py",
-    },
-    {
-        "regel": "verzwegen premissen",
-        "spec": "§4.5",
-        "werking": "structurele detectie via vormaanvulling en termdekking; termdekking is een "
-        "heuristiek en de uitvoer luidt 'mogelijk verzwegen premisse'",
-        "vervalt": "fase 5",
-        "toegepast_in": "logica/vorm.py en motor/engine.py",
-    },
-)
 
 VOORBEHOUDEN_FASE1 = (
     "Fase 1. De motor draait uitsluitend op de kern; er zijn geen inhoudelijke regels geladen.",
@@ -506,7 +478,7 @@ class Motor:
                 "regelset": regelset_versie(self.sessie),
             },
             "voorbehouden": list(VOORBEHOUDEN_FASE1),
-            "interim_regels": [dict(regel) for regel in INTERIM_REGELS_FASE1],
+            "interim_regels": [regel.als_dict() for regel in INTERIM_REGELS],
             "drogredenscan": DROGREDENSCAN_FASE1,
         }
 

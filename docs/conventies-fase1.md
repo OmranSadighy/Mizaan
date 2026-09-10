@@ -283,3 +283,44 @@ Deze velden worden opgeslagen maar sturen het oordeel nog niet:
 tegenstelling (fase 4), `instrument_output` (fase 3), en `confirmed` op een
 premisse of inferentie (fase 5, met de bevestigingspoorten uit B4). Dat staat bij
 elk van hen in de rapportage, zodat niemand denkt dat ze zijn meegewogen.
+
+
+## 20. De verwijderplicht op de interim-regels
+
+§4.5 kent drie regels die alleen in fase 1 gelden. Ze staan in
+`bewijsmotor/interim.py` als één bron van waarheid, en elke beoordeling draagt ze
+mee onder `interim_regels`, met wat de regel doet, wat haar vervangt en wanneer
+zij vervalt.
+
+Elke regel heeft een bewaking in `tests/test_interim_verwijderplicht.py`. Die
+toetst één invariant:
+
+> de interim-regel is in werking dan en slechts dan als haar vervanger ontbreekt
+
+De bewaking is dus tweezijdig. Zij slaat aan wanneer de vervanger is gebouwd en
+de interim-regel is blijven staan, én wanneer iemand de regel weghaalt voordat de
+vervanger er is. Dat tweede is even fout: §4.5 zegt dat deze regels in fase 1
+gelden.
+
+**Hoe wordt "de vervanger bestaat" vastgesteld?** Aan sporen die het bouwen van
+dat mechanisme onvermijdelijk achterlaat: een modulenaam, een gedefinieerde
+functie of klasse, of een gedeclareerde afhankelijkheid. Niet aan een vlag die
+iemand moet omzetten, want een vlag die je vergeet om te zetten is precies de
+fout die deze bewaking moet vangen.
+
+De bewaking kijkt met opzet **niet** in commentaar of documentatie. De woorden
+"nederlaaggraaf" en "noisy-OR" staan nu in rationales en commentaar, juist omdat
+de code uitlegt wat haar later vervangt. Een bewaking die daarop afgaat, zou
+vanaf dag één op rood staan en daarmee waardeloos zijn. Er is een aparte test die
+dat vastpint.
+
+**Hoe wordt "de regel werkt nog" vastgesteld?** Aan het gedrag van de motor, niet
+aan de tekst van de code. Een regel die is uitgeschakeld maar wel nog in
+commentaar staat, telt als weg.
+
+**Eén regel wijkt af.** Bij de verzwegen premissen zegt §4.5 "vervalt óf wordt
+aangevuld in fase 5". Daar kan de bewaking geen verwijdering afdwingen, want
+beide uitkomsten zijn toegestaan. Zij dwingt in plaats daarvan een besluit af:
+zodra de taalmodelstap bestaat, faalt de test met de melding dat er gekozen moet
+worden en de bewaking bijgewerkt. Stil laten staan is de fout die §4.5 voorkomt;
+een bewuste keuze voor aanvullen is dat niet.

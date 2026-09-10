@@ -219,6 +219,22 @@ def main() -> int:
         )
     )
 
+    from bewijsmotor.interim import INTERIM_REGELS
+
+    uitslagen.append(
+        _regel(
+            "9",
+            "elke interim-regel uit §4.5 heeft een verwijderplicht-bewaking",
+            len(INTERIM_REGELS) == 3,
+            "\n".join(
+                f"{regel.naam}: vervalt in {regel.vervalt_in}, vervangen door "
+                f"{regel.vervangen_door}"
+                for regel in INTERIM_REGELS
+            )
+            + "\nbewaking: tests/test_interim_verwijderplicht.py",
+        )
+    )
+
     sessie.close()
     print("-" * 72)
     if all(uitslagen):
