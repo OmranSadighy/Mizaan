@@ -76,6 +76,7 @@ class LijnUitkomst:
     inferentie_ref: str
     claim_ref: str
     label: str
+    rationale: str
     zwakste: Bijdrage | None
     alle_zwakste: list[Bijdrage]
     raakt_bronloos: bool
@@ -296,6 +297,11 @@ def bereken(
             inferentie_ref=inferentie_ref,
             claim_ref=inferentie.naar,
             label=label,
+            rationale=(
+                f"de sterkte van bewijslijn '{inferentie_ref}' is het minimum over "
+                f"{_som(elementen)}; het minimum wordt bepaald door {_som(zwakste)} "
+                "(kernregel zwakste_schakel)"
+            ),
             zwakste=zwakste[0] if zwakste else None,
             alle_zwakste=zwakste,
             raakt_bronloos=raakt_bronloos,
@@ -347,10 +353,20 @@ def bereken(
             )
             continue
 
-        beste = max(lijn_refs, key=lambda ref: schaal.rang(lijn_uitkomsten[ref].label))
+        bronloze_lijnen = [ref for ref in lijn_refs if lijn_uitkomsten[ref].raakt_bronloos]
+        # Bij gelijk label draagt een lijn waarin elke premisse een bron noemt
+        # het oordeel beter dan een lijn met een premisse zonder bron. De
+        # volgorde van de invoer beslist pas daarna.
+        beste = max(
+            lijn_refs,
+            key=lambda ref: (
+                schaal.rang(lijn_uitkomsten[ref].label),
+                not lijn_uitkomsten[ref].raakt_bronloos,
+                -lijn_refs.index(ref),
+            ),
+        )
         label = lijn_uitkomsten[beste].label
 
-        bronloze_lijnen = [ref for ref in lijn_refs if lijn_uitkomsten[ref].raakt_bronloos]
         onvoldoende = len(bronloze_lijnen) == len(lijn_refs)
         if onvoldoende:
             uitleg = (
@@ -364,12 +380,16 @@ def bereken(
                 + ". Die lijnen dragen niet; de overige wel"
             )
         else:
-            uitleg = "elke premisse in de aangeleverde lijnen noemt een bron"
+            uitleg = (
+                "elke premisse in de aangeleverde bewijslijnen van deze claim, ook die in "
+                "sub-premissen en in beweerde claims, noemt een bron"
+            )
 
         meerdere = len(lijn_refs) > 1
         rationale = (
-            f"de sterkte van claim '{claim_ref}' is die van haar sterkste bewijslijn "
-            f"('{beste}')."
+            f"de aangeleverde onderbouwing van claim '{claim_ref}' is zo sterk als haar "
+            f"sterkste bewijslijn ('{beste}'). Dit is een oordeel over de onderbouwing zoals "
+            "zij is aangeleverd, niet over de claim zelf."
             + (
                 " Over lijnen heen geldt het maximum: een claim met één sluitende bewijslijn "
                 "plus een slechte lijn is door die slechte lijn niet zwakker geworden. Binnen "

@@ -113,10 +113,6 @@ for _vocabulaire in VOCABULAIRES:
     )
 
 
-def lookup_tabelnaam(vocabulaire: str) -> str:
-    return f"lu_{vocabulaire}"
-
-
 def _fk(vocabulaire: str) -> ForeignKey:
     return ForeignKey(f"lu_{vocabulaire}.key")
 
@@ -141,6 +137,10 @@ class KernelRule(Base):
 
     __table_args__ = (
         CheckConstraint("length(trim(self_refutation_argument)) > 0", name="ck_kernregel_bewijs"),
+        # Onveranderlijk is geen instelling maar de definitie van een kernregel.
+        # Zonder deze constraint zou een rij met immutable = 0 langs de triggers
+        # glippen die de kern beschermen.
+        CheckConstraint("immutable = 1", name="ck_kernregel_onveranderlijk"),
     )
 
 
@@ -632,6 +632,9 @@ class Comparison(Base):
     id = Column(String, primary_key=True, default=nieuw_id)
     profile_id = Column(String, ForeignKey("profile.id"), nullable=False)
     profile_version = Column(String, nullable=False)
+    engine_version = Column(String, nullable=True)
+    ruleset_version = Column(String, nullable=True)
+    contract_version = Column(String, nullable=True)
     scope_relation = Column(String, _fk("scope_relation"), nullable=True)
     created_at = Column(DateTime, nullable=False, default=nu)
 

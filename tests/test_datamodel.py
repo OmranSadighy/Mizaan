@@ -351,3 +351,89 @@ def test_regelsetversie_beweegt_mee_met_de_data(sessie):
     assert regelset_versie(sessie) == na_koppeling, (
         "een andere vertaling stuurt het oordeel niet en hoort de vingerafdruk niet te raken"
     )
+
+
+def test_de_generieke_relatietabel_draagt_elke_relatiesoort(sessie):
+    """§2.10: relaties zijn rijen met een relation_type, niet een kolom per soort."""
+    soorten = list(sessie.execute(select(LOOKUP_KLASSEN["relation_type"].key)).scalars())
+    assert soorten
+    for soort in soorten:
+        sessie.add(
+            Edge(
+                from_id=f"bron-{soort}",
+                from_kind="qaida",
+                to_id=f"doel-{soort}",
+                to_kind="qaida",
+                relation_type=soort,
+                toelichting="rij aangemaakt om te bewijzen dat de tabel elke soort aankan",
+            )
+        )
+    sessie.flush()
+    opgeslagen = {rij.relation_type for rij in sessie.execute(select(Edge)).scalars()}
+    assert opgeslagen == set(soorten)
+
+    with pytest.raises(IntegrityError):
+        sessie.add(
+            Edge(
+                from_id="a",
+                from_kind="qaida",
+                to_id="b",
+                to_kind="qaida",
+                relation_type="verzonnen_relatie",
+            )
+        )
+        sessie.flush()
+    sessie.rollback()
+
+
+def test_kernregel_met_immutable_nul_wordt_geweigerd(sessie):
+    """Anders glipt een rij langs de triggers die de kern beschermen."""
+    sessie.add(
+        KernelRule(
+            key="niet_onveranderlijk",
+            statement_nl="x",
+            statement_en="x",
+            self_refutation_argument="x",
+            immutable=False,
+            version="0.1.0",
+        )
+    )
+    with pytest.raises(IntegrityError):
+        sessie.flush()
+    sessie.rollback()
+
+
+def test_motor_weigert_te_rekenen_zonder_kernregels():
+    """§2.3: de kern is niet iets waar de motor omheen kan rekenen.
+
+    De kernregels zijn niet te verwijderen zodra ze er zijn; dat weigeren de
+    triggers. Deze test bouwt daarom een database waarin ze nooit zijn geladen,
+    met alle overige vocabulaires wel. De motor hoort dan te weigeren in plaats
+    van door te rekenen met een kern die niet compleet is.
+    """
+    import json as jsonmodule
+
+    from bewijsmotor.db.registry import SEED_MAP, maak_engine, maak_schema, maak_sessiefabriek
+    from bewijsmotor.fouten import OntbrekendeKern
+
+    engine = maak_engine()
+    maak_schema(engine)
+    losse_sessie = maak_sessiefabriek(engine)()
+    lookups = jsonmodule.loads((SEED_MAP / "lookups.json").read_text(encoding="utf-8"))
+    for vocabulaire, blok in lookups["vocabulaires"].items():
+        klasse = LOOKUP_KLASSEN[vocabulaire]
+        for rij in blok["rijen"]:
+            losse_sessie.add(
+                klasse(
+                    key=rij["key"],
+                    label_nl=rij["label_nl"],
+                    label_en=rij["label_en"],
+                    rangorde=rij.get("rangorde"),
+                    kernregel=None,
+                )
+            )
+    losse_sessie.flush()
+
+    with pytest.raises(OntbrekendeKern, match="weigert zij te oordelen"):
+        Motor(losse_sessie)
+    losse_sessie.close()

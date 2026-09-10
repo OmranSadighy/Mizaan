@@ -155,19 +155,20 @@ def zoek(
 
     for inferentie_ref in inferentie_refs:
         uitkomst = basis.inferenties[inferentie_ref]
-        if uitkomst.vormstatus == "valid":
-            # De vorm is bewezen geldig. Een andere waarde is geen wijziging die
-            # iemand kan aanleveren, maar een ontkenning van een vaststelling.
-            continue
-        registreer_labelreeks(
-            "inference",
-            inferentie_ref,
-            "strength",
-            uitkomst.label,
-            lambda waarde, r=inferentie_ref: Overschrijving(inferentie={r: waarde}),
-            "als deze redeneerstap sterker wordt, kantelt het eindoordeel",
-            "als deze redeneerstap zwakker wordt, kantelt het eindoordeel",
-        )
+        # Bij een bewezen geldige vorm is een ander sterktelabel geen wijziging
+        # die iemand kan aanleveren, maar de ontkenning van een vaststelling.
+        # De kritische vragen bij die stap blijven wél kantelpunten: een vraag
+        # die faalt, zet het label van de stap alsnog op onbepaald.
+        if uitkomst.vormstatus != "valid":
+            registreer_labelreeks(
+                "inference",
+                inferentie_ref,
+                "strength",
+                uitkomst.label,
+                lambda waarde, r=inferentie_ref: Overschrijving(inferentie={r: waarde}),
+                "als deze redeneerstap sterker wordt, kantelt het eindoordeel",
+                "als deze redeneerstap zwakker wordt, kantelt het eindoordeel",
+            )
 
         for vraag in graaf.inferenties[inferentie_ref].kritische_vragen:
             if vraag.beantwoord_door_motor:

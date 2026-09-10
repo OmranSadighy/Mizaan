@@ -254,7 +254,10 @@ def test_claim_die_op_een_steunkring_rust_leest_haar_uitkomst_af(motor):
     assert top["weakest_element"]["soort"] == "claim"
     assert top["weakest_element"]["ref"] == "c_kring1"
     assert top["insufficient_evidence"]["waarde"] is True
-    assert top["steunkring"]["kringen"], "de kring moet in het rapport zichtbaar zijn"
+    assert top["steunkring"]["kringen_van_deze_claim"] == [], "c_top ligt zelf niet in een kring"
+    assert top["steunkring"]["kringen_in_de_keten"], (
+        "de kring verderop in de keten moet in het rapport zichtbaar zijn"
+    )
 
 
 def test_tegenstrijdige_premissen_steunen_op_de_non_contradictieregel(motor):

@@ -13,7 +13,7 @@ from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from ..fouten import OnbekendeLookupwaarde
+from ..fouten import InvoerFout, OnbekendeLookupwaarde
 from . import triggers
 from .model import (
     LOOKUP_KLASSEN,
@@ -175,6 +175,18 @@ def laad_profiel(sessie: Session, data: dict[str, Any]) -> Profile:
     De validatie dat elk premissetype een bepaald plafond heeft, hoort bij
     fase 2 en gebeurt hier bewust niet.
     """
+    gevraagde_qawaid = list(data.get("qaida_set") or []) + [
+        sleutel
+        for niveau in (data.get("competence_levels") or [])
+        for sleutel in (niveau.get("qaida_set") or [])
+    ]
+    if gevraagde_qawaid:
+        raise InvoerFout(
+            f"profiel '{data.get('name')}' noemt qawa'id: "
+            + ", ".join(sorted(set(gevraagde_qawaid)))
+            + ". De regellaag wordt in fase 2 gebouwd. De motor laadt ze nu niet en zou ze "
+            "stilzwijgend negeren, waardoor het profiel iets anders zou doen dan het zegt."
+        )
     profiel = Profile(
         name=data["name"],
         version=data["version"],

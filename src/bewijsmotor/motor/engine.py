@@ -27,6 +27,7 @@ from ..db.model import (
     AssessmentTippingPoint,
     AssessmentUnstatedPremise,
     Claim as ClaimRij,
+    CompetenceLevel,
     Inference as InferenceRij,
     InferenceCriticalQuestion,
     InferencePremise,
@@ -39,7 +40,12 @@ from ..db.model import (
     Submission,
 )
 from ..db.registry import haal_profiel, regelset_versie, schrijf_audit
-from ..fouten import InvoerFout, OnbepaaldeProfielinstelling
+from ..fouten import (
+    InvoerFout,
+    OnbekendeLookupwaarde,
+    OnbepaaldeProfielinstelling,
+    OntbrekendeKern,
+)
 from ..labels import Schaal
 from ..logica import vorm as vormlogica
 from ..logica.vorm import VormAnalyse
@@ -80,6 +86,26 @@ class Beoordelingsresultaat:
     vormanalyses: dict[str, VormAnalyse]
 
 
+# De kernregels waarop de motor in fase 1 daadwerkelijk steunt. Ontbreekt er
+# een, dan weigert de motor te rekenen in plaats van door te gaan met een kern
+# die niet meer compleet is (randvoorwaarde 2.3: de motor weigert kernregels te
+# laten vallen).
+VEREISTE_KERNREGELS = frozenset(
+    {
+        "non_contradictie",
+        "oordeel_vereist_begrip",
+        "zwakste_schakel",
+        "vorm_versus_waarheid",
+        "steun_en_bewijslast",
+    }
+)
+
+# Toetsen die de motor zelf kan uitvoeren en waarmee een kritische vraag
+# beantwoord kan worden. Een sjabloon dat een andere capaciteit noemt, is een
+# fout in de data en geen stilzwijgend genegeerde regel.
+MOTORCAPACITEITEN = frozenset({"form_validity"})
+
+
 class Motor:
     """De rekenende laag. Leest regels als data, rekent zelf niets inhoudelijks."""
 
@@ -95,8 +121,32 @@ class Motor:
             }
             for rij in sessie.execute(select(KernelRule)).scalars()
         }
+        ontbrekend = VEREISTE_KERNREGELS - set(self.kernregels)
+        if ontbrekend:
+            raise OntbrekendeKern(
+                "de motor steunt op kernregels die niet in de database staan: "
+                + ", ".join(sorted(ontbrekend))
+                + ". De kern is niet iets waar de motor omheen kan rekenen; zonder deze "
+                "records weigert zij te oordelen (randvoorwaarde 2.3)."
+            )
         self.kernregel_van_drogreden = self._kernregel_index("fallacy_type")
         self.kernregel_van_basis = self._kernregel_index("unstated_premise_basis")
+
+    def _kernregel_van(self, index: dict[str, str], sleutel: str, vocabulaire: str) -> str:
+        """Welke kernregel een soort bevinding draagt, staat in de data.
+
+        Zwijgt de lookup erover, dan is dat een gat in de data en geen reden om
+        er in code een te kiezen. Een stille terugval zou de bewering dat deze
+        koppeling data is, onwaar maken.
+        """
+        kernregel = index.get(sleutel)
+        if not kernregel:
+            raise OnbekendeLookupwaarde(
+                f"de rij '{sleutel}' in de lookup '{vocabulaire}' noemt geen kernregel. "
+                "Welke kernregel een soort bevinding draagt, staat in de data; de motor "
+                "kiest er zelf geen."
+            )
+        return kernregel
 
     def _kernregel_index(self, vocabulaire: str) -> dict[str, str]:
         klasse = LOOKUP_KLASSEN[vocabulaire]
@@ -176,9 +226,18 @@ class Motor:
         for ref, inferentie in graaf.inferenties.items():
             analyse = analyses[ref]
             eigen_vragen = list(inferentie.kritische_vragen)
-            per_template = {
-                vraag.template: vraag for vraag in eigen_vragen if vraag.template is not None
-            }
+            per_template: dict[str, KritischeVraag] = {}
+            dubbel: list[KritischeVraag] = []
+            for vraag in eigen_vragen:
+                if vraag.template is None:
+                    continue
+                if vraag.template in per_template:
+                    # Twee antwoorden op dezelfde basisvraag. Het tweede mag niet
+                    # verdwijnen: dat zou een geldige defeater onderdrukken
+                    # (§4.3). Het wordt een eigen vraag naast de basisvraag.
+                    dubbel.append(vraag)
+                else:
+                    per_template[vraag.template] = vraag
             samengesteld: list[KritischeVraag] = []
             gebruikte_templates: set[str] = set()
 
@@ -190,10 +249,16 @@ class Motor:
                 toelichting = aangeleverd.toelichting if aangeleverd else None
                 door_motor = False
 
-                if sjabloon.beantwoordbaar_door_motor == "form_validity" and analyse.status in {
-                    "valid",
-                    "invalid",
-                }:
+                capaciteit = sjabloon.beantwoordbaar_door_motor
+                if capaciteit is not None and capaciteit not in MOTORCAPACITEITEN:
+                    raise OnbekendeLookupwaarde(
+                        f"kritische vraag '{sjabloon.volgnummer}' bij schema "
+                        f"'{sjabloon.scheme}' noemt de motorcapaciteit '{capaciteit}', die de "
+                        "motor niet heeft. Zou de motor dat stil negeren, dan zou een typefout "
+                        "de bescherming tegen dubbel tellen uitschakelen zonder melding. "
+                        f"Bekende capaciteiten: {', '.join(sorted(MOTORCAPACITEITEN))}."
+                    )
+                if capaciteit == "form_validity" and analyse.status in {"valid", "invalid"}:
                     nieuwe_status = "answered" if analyse.status == "valid" else "failed"
                     door_motor = True
                     extra = (
@@ -219,16 +284,16 @@ class Motor:
                         effect=effect,
                         toelichting=toelichting,
                         beantwoord_door_motor=door_motor,
-                        herkomst=(
-                            "basisvraag bij het schema"
-                            if sjabloon.origin == "base"
-                            else "door het profiel toegevoegd"
-                        ),
+                        herkomst=sjabloon.origin,
                     )
                 )
 
             for nummer, vraag in enumerate(eigen_vragen):
-                if vraag.template is not None and vraag.template in gebruikte_templates:
+                if (
+                    vraag.template is not None
+                    and vraag.template in gebruikte_templates
+                    and all(vraag is not ander for ander in dubbel)
+                ):
                     continue
                 samengesteld.append(
                     KritischeVraag(
@@ -237,7 +302,7 @@ class Motor:
                         status=vraag.status,
                         effect=vraag.effect,
                         toelichting=vraag.toelichting,
-                        herkomst="aangeleverd bij de invoer",
+                        herkomst="input",
                     )
                 )
 
@@ -278,8 +343,8 @@ class Motor:
                         element_soort="inference",
                         element_ref=ref,
                         rationale=drogreden.rationale,
-                        kernregel=self.kernregel_van_drogreden.get(
-                            drogreden.soort, "vorm_versus_waarheid"
+                        kernregel=self._kernregel_van(
+                            self.kernregel_van_drogreden, drogreden.soort, "fallacy_type"
                         ),
                     )
                 )
@@ -295,10 +360,11 @@ class Motor:
                         element_ref=claim_ref,
                         rationale=(
                             "de steun voor deze claim loopt langs haar eigen premissen weer bij "
-                            "zichzelf uit: " + " → ".join(kring)
+                            "zichzelf uit. De claims die elkaar wederzijds dragen zijn: "
+                            + ", ".join(kring)
                         ),
-                        kernregel=self.kernregel_van_drogreden.get(
-                            "circular_reasoning", "steun_en_bewijslast"
+                        kernregel=self._kernregel_van(
+                            self.kernregel_van_drogreden, "circular_reasoning", "fallacy_type"
                         ),
                     )
                 )
@@ -313,6 +379,7 @@ class Motor:
     ) -> dict[str, Any]:
         invoer = InzendingInvoer.model_validate(ruwe_invoer)
         graaf = bouw(invoer, self.vocab, MOTOR_VERSIE)  # stap 1
+        self._weiger_niet_verwerkte_velden(graaf)
         if graaf.gebruiksvorm not in UITVOERBARE_GEBRUIKSVORMEN:
             raise InvoerFout(
                 f"gebruiksvorm '{graaf.gebruiksvorm}' bestaat wel in het schema maar wordt in "
@@ -322,6 +389,19 @@ class Motor:
                 "uitvoer zijn."
             )
         profiel = haal_profiel(self.sessie, invoer.profile, invoer.profile_version)
+        niveaus = list(
+            self.sessie.execute(
+                select(CompetenceLevel.name).where(CompetenceLevel.profile_id == profiel.id)
+            ).scalars()
+        )
+        if graaf.competentieniveau not in niveaus:
+            raise OnbekendeLookupwaarde(
+                f"competentieniveau '{graaf.competentieniveau}' bestaat niet in profiel "
+                f"'{profiel.name}' versie {profiel.version}. Bekende niveaus: "
+                + (", ".join(sorted(niveaus)) or "(geen)")
+                + ". Een oordeel berekenen voor een niveau dat het profiel niet kent, zou een "
+                "oordeel zijn over iets ongedefinieerds."
+            )
         qawaid_geladen = list(
             self.sessie.execute(
                 select(ProfileQaida.qaida_id).where(ProfileQaida.profile_id == profiel.id)
@@ -408,6 +488,37 @@ class Motor:
     # Opslag
     # ------------------------------------------------------------------
 
+    def _weiger_niet_verwerkte_velden(self, graaf: Graaf) -> None:
+        """Weiger invoer die fase 1 zou aannemen en vervolgens laten vallen.
+
+        Stil weggooien is erger dan weigeren: de indiener denkt dan dat zijn
+        gegeven is meegewogen.
+        """
+        met_interpretatie = [
+            ref
+            for ref, inferentie in graaf.inferenties.items()
+            if inferentie.interpretation_ref is not None
+        ]
+        if met_interpretatie:
+            raise InvoerFout(
+                "deze inferenties verwijzen naar een interpretatie: "
+                + ", ".join(sorted(met_interpretatie))
+                + ". De interpretatielaag draait pas in fase 4; de motor zou de verwijzing nu "
+                "aannemen en laten vallen, en dat zou de indruk wekken dat zij is meegewogen."
+            )
+        met_corpus = [
+            ref
+            for ref, premisse in graaf.premissen.items()
+            if premisse.provenance.corpus_document_ref is not None
+        ]
+        if met_corpus:
+            raise InvoerFout(
+                "deze premissen verwijzen naar een corpusdocument: "
+                + ", ".join(sorted(met_corpus))
+                + ". Het corpus is in deze fase leeg en wordt niet geraadpleegd; de verwijzing "
+                "zou zonder betekenis worden opgeslagen."
+            )
+
     def _sla_op(
         self,
         invoer: InzendingInvoer,
@@ -464,6 +575,7 @@ class Motor:
                 confirmed=premisse.confirmed,
                 provenance=premisse.provenance.kind,
                 provenance_detail=premisse.provenance.detail,
+                instrument_output=premisse.instrument_output,
                 form=premisse.vorm,
                 termen=list(premisse.termen),
                 asserts_claim_id=(
@@ -691,10 +803,20 @@ def _ontdubbel(bevindingen: list[DrogredenBevinding]) -> list[DrogredenBevinding
 
 
 def _premisse_refs(knopen: list[dict[str, Any]]) -> list[str]:
+    """Elke premisse in de keten, ook die achter een claimgrens.
+
+    De afhankelijkheden van een beoordeling moeten net zo ver reiken als haar
+    keten. Stoppen bij de claimgrens zou betekenen dat een wijziging in een
+    premisse die de zwakste schakel is, niet als afhankelijkheid zichtbaar is.
+    """
     gevonden: list[str] = []
     for knoop in knopen:
         gevonden.append(knoop["ref"])
         gevonden.extend(_premisse_refs(knoop["sub_premissen"]))
+        onderliggend = knoop.get("keten_van_beweerde_claim")
+        if onderliggend:
+            for lijn in onderliggend["bewijslijnen"]:
+                gevonden.extend(_premisse_refs(lijn["premissen"]))
     return gevonden
 
 

@@ -42,5 +42,10 @@ class OnbepaaldeProfielinstelling(MotorFout):
     """
 
 
-class OnveranderlijkRecord(MotorFout):
-    """Er is geprobeerd een onveranderlijk record te wijzigen of te verwijderen."""
+class OntbrekendeKern(MotorFout):
+    """De motor steunt op een kernregel die niet in de database staat.
+
+    De kern is niet iets waar de motor omheen kan rekenen. Ontbreekt een
+    kernregel, dan weigert zij te oordelen in plaats van door te gaan met een
+    kern die niet compleet is.
+    """

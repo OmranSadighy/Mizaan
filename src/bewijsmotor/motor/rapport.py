@@ -11,7 +11,9 @@ auteur naspeurbaar, maar ook het redeneren van de motor zelf.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Any
 
 from ..labels import Schaal
@@ -34,8 +36,20 @@ def _bijdrage(bijdrage: Bijdrage | None, schaal: Schaal) -> dict[str, Any] | Non
     }
 
 
-def _premisse_knoop(premisse: Premisse, berekening: Berekening, schaal: Schaal) -> dict[str, Any]:
-    uitkomst = berekening.premissen[premisse.ref]
+@dataclass(frozen=True)
+class _Ketencontext:
+    graaf: Graaf
+    berekening: Berekening
+    schaal: Schaal
+    vormanalyses: Mapping[str, VormAnalyse]
+    versie: str
+
+
+def _premisse_knoop(
+    premisse: Premisse, context: _Ketencontext, bezocht: frozenset[str]
+) -> dict[str, Any]:
+    uitkomst = context.berekening.premissen[premisse.ref]
+    schaal = context.schaal
     return {
         "ref": premisse.ref,
         "tekst": premisse.tekst,
@@ -45,12 +59,22 @@ def _premisse_knoop(premisse: Premisse, berekening: Berekening, schaal: Schaal) 
         "bevestigd": premisse.confirmed,
         "herkomst": {
             "kind": premisse.provenance.kind,
-            "detail": premisse.provenance.detail,
             "corpus_document_ref": premisse.provenance.corpus_document_ref,
+            # Ondoorzichtige lading van de indiener reist als tekst mee. Zo blijft
+            # zij bewaard zonder dat er een getal in de uitvoer belandt.
+            "detail_json": (
+                json.dumps(premisse.provenance.detail, ensure_ascii=False, sort_keys=True)
+                if premisse.provenance.detail is not None
+                else None
+            ),
         },
         "citaat": {
             "source_ref": premisse.citation.source_ref,
             "verification_status": premisse.citation.verification_status,
+            "toelichting": (
+                "de verificatiestatus van een citaat staat los van de sterkte van de claim. "
+                "Fase 1 laat haar het label niet beïnvloeden; dat gebeurt vanaf fase 3"
+            ),
         },
         "status": (
             {"label": premisse.status.label, "opposition": premisse.status.opposition}
@@ -61,6 +85,11 @@ def _premisse_knoop(premisse: Premisse, berekening: Berekening, schaal: Schaal) 
             "thubut": premisse.thubut.als_dict() if premisse.thubut else None,
             "dalalah": premisse.dalalah.als_dict() if premisse.dalalah else None,
         },
+        "instrument_output_json": (
+            json.dumps(premisse.instrument_output, ensure_ascii=False, sort_keys=True)
+            if premisse.instrument_output is not None
+            else None
+        ),
         "genegeerde_scores": [
             {"veld": veld, "aangeleverd_label": label} for veld, label in uitkomst.genegeerde_scores
         ],
@@ -69,29 +98,36 @@ def _premisse_knoop(premisse: Premisse, berekening: Berekening, schaal: Schaal) 
             "label_nl": schaal.nl(uitkomst.label),
             "rationale": uitkomst.rationale,
             "computed_by": "engine_kernel",
+            "version": context.versie,
         },
         "beweert_claim": premisse.asserts_claim,
-        "sub_premissen": [
-            _premisse_knoop(sub, berekening, schaal) for sub in premisse.sub_premissen
-        ],
+        # De keten stopt niet bij de claimgrens. Beweert een premisse een andere
+        # claim, dan hangt haar hele onderbouwing eronder, want anders is de
+        # keten niet uitklapbaar tot de bron waar zij het zwakst is.
+        "keten_van_beweerde_claim": (
+            _keten(context, premisse.asserts_claim, bezocht)
+            if premisse.asserts_claim and premisse.asserts_claim not in bezocht
+            else None
+        ),
+        "keten_afgekapt_wegens_steunkring": bool(
+            premisse.asserts_claim and premisse.asserts_claim in bezocht
+        ),
+        "sub_premissen": [_premisse_knoop(sub, context, bezocht) for sub in premisse.sub_premissen],
     }
 
 
-def keten(
-    graaf: Graaf,
-    berekening: Berekening,
-    schaal: Schaal,
-    vormanalyses: Mapping[str, VormAnalyse],
-    claim_ref: str,
-) -> dict[str, Any]:
+def _keten(context: _Ketencontext, claim_ref: str, bezocht: frozenset[str]) -> dict[str, Any]:
+    graaf = context.graaf
+    schaal = context.schaal
     claim = graaf.claim(claim_ref)
-    claimuitkomst = berekening.claims[claim_ref]
+    claimuitkomst = context.berekening.claims[claim_ref]
+    verder = bezocht | {claim_ref}
     lijnen = []
     for inferentie_ref in claimuitkomst.lijnen:
         inferentie = graaf.inferenties[inferentie_ref]
-        stap = berekening.inferenties[inferentie_ref]
-        lijn = berekening.lijnen.get(inferentie_ref)
-        analyse = vormanalyses[inferentie_ref]
+        stap = context.berekening.inferenties[inferentie_ref]
+        lijn = context.berekening.lijnen.get(inferentie_ref)
+        analyse = context.vormanalyses[inferentie_ref]
         lijnen.append(
             {
                 "inferentie_ref": inferentie_ref,
@@ -110,12 +146,16 @@ def keten(
                     "label_nl": schaal.nl(stap.label),
                     "rationale": stap.rationale,
                     "computed_by": "engine_kernel",
+                    "version": context.versie,
                     "herkomst": stap.herkomst,
                 },
                 "lijnsterkte": (
                     {
                         "label": lijn.label,
                         "label_nl": schaal.nl(lijn.label),
+                        "rationale": lijn.rationale,
+                        "computed_by": "engine_kernel",
+                        "version": context.versie,
                         "zwakste": _bijdrage(lijn.zwakste, schaal),
                         "alle_zwakste": [_bijdrage(b, schaal) for b in lijn.alle_zwakste],
                         "raakt_premisse_zonder_bron": lijn.raakt_bronloos,
@@ -136,16 +176,41 @@ def keten(
                     for vraag in inferentie.kritische_vragen
                 ],
                 "premissen": [
-                    _premisse_knoop(graaf.premisse(ref), berekening, schaal)
-                    for ref in inferentie.van
+                    _premisse_knoop(graaf.premisse(ref), context, verder) for ref in inferentie.van
                 ],
             }
         )
     return {
         "claim_ref": claim_ref,
         "claim_tekst": claim.tekst,
+        "berekende_sterkte": {
+            "label": claimuitkomst.label,
+            "label_nl": schaal.nl(claimuitkomst.label),
+            "rationale": claimuitkomst.rationale,
+            "computed_by": "engine_kernel",
+            "version": context.versie,
+        },
         "bewijslijnen": lijnen,
     }
+
+
+def keten(
+    graaf: Graaf,
+    berekening: Berekening,
+    schaal: Schaal,
+    vormanalyses: Mapping[str, VormAnalyse],
+    claim_ref: str,
+    versie: str,
+) -> dict[str, Any]:
+    """De volledige keten van één claim, uitklapbaar tot de bron."""
+    context = _Ketencontext(
+        graaf=graaf,
+        berekening=berekening,
+        schaal=schaal,
+        vormanalyses=vormanalyses,
+        versie=versie,
+    )
+    return _keten(context, claim_ref, frozenset())
 
 
 def bouw_beoordeling(
@@ -162,6 +227,7 @@ def bouw_beoordeling(
 ) -> dict[str, Any]:
     claimuitkomst = berekening.claims[claim_ref]
     eigen_inferenties = _bereikbare_inferenties(graaf, claim_ref)
+    bereikbare_claims = _bereikbare_claims(graaf, claim_ref)
 
     open_vragen = [
         {
@@ -175,6 +241,23 @@ def bouw_beoordeling(
         for ref in sorted(eigen_inferenties)
         for vraag in graaf.inferenties[ref].kritische_vragen
         if vraag.status != "answered"
+    ]
+    # Een lege lijst openstaande vragen kan twee dingen betekenen: er waren er
+    # geen, of de indiener heeft ze zelf afgevinkt. Dat verschil hoort zichtbaar
+    # te zijn, want een antwoord van de indiener is een bewering, geen toets.
+    beantwoorde_vragen = [
+        {
+            "inferentie_ref": ref,
+            "sleutel": vraag.sleutel,
+            "vraag": vraag.vraag,
+            "beantwoord_door": (
+                "motor" if vraag.beantwoord_door_motor else "de indiener van de tekst"
+            ),
+            "toelichting": vraag.toelichting,
+        }
+        for ref in sorted(eigen_inferenties)
+        for vraag in graaf.inferenties[ref].kritische_vragen
+        if vraag.status == "answered"
     ]
 
     eigen_drogredenen = [
@@ -235,6 +318,7 @@ def bouw_beoordeling(
         "weakest_element": _bijdrage(claimuitkomst.zwakste, schaal),
         "alle_zwakste_elementen": [_bijdrage(b, schaal) for b in claimuitkomst.alle_zwakste],
         "open_critical_questions": open_vragen,
+        "answered_critical_questions": beantwoorde_vragen,
         "fallacies": [
             {
                 "soort": d.soort,
@@ -282,9 +366,21 @@ def bouw_beoordeling(
         },
         "steunkring": {
             "gevonden": bool(claimuitkomst.in_cykel),
-            "kringen": [list(kring) for kring in berekening.cykels],
+            # De kring waarin deze claim zelf ligt, en de kringen die verderop in
+            # haar eigen keten liggen. Kringen elders in de inzending horen in het
+            # rapport van die andere claim, niet in dit rapport.
+            "kringen_van_deze_claim": [
+                list(kring) for kring in berekening.cykels if claim_ref in kring
+            ],
+            "kringen_in_de_keten": [
+                list(kring)
+                for kring in berekening.cykels
+                if claim_ref not in kring and set(kring) & bereikbare_claims
+            ],
         },
-        "chain": keten(graaf, berekening, schaal, vormanalyses, claim_ref),
+        "chain": keten(
+            graaf, berekening, schaal, vormanalyses, claim_ref, metadata["versies"]["motor"]
+        ),
         "kernel_rules_applied": [
             {
                 "key": sleutel,
@@ -296,6 +392,21 @@ def bouw_beoordeling(
         ],
         "voorbehouden": metadata["voorbehouden"],
     }
+
+
+def _bereikbare_claims(graaf: Graaf, claim_ref: str) -> set[str]:
+    """Alle claims waarop deze claim langs haar keten steunt, zichzelf inbegrepen."""
+    gevonden: set[str] = set()
+    te_doen = [claim_ref]
+    while te_doen:
+        huidige = te_doen.pop()
+        if huidige in gevonden:
+            continue
+        gevonden.add(huidige)
+        for inferentie_ref in graaf.lijnen_per_claim.get(huidige, []):
+            for premisse_ref in graaf.inferenties[inferentie_ref].van:
+                te_doen.extend(_beweerde(graaf, premisse_ref))
+    return gevonden
 
 
 def _bereikbare_inferenties(graaf: Graaf, claim_ref: str) -> set[str]:

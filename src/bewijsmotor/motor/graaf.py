@@ -8,7 +8,7 @@ iets ongedefinieerds; dat weigert de motor op grond van de kernregel
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import select
@@ -96,6 +96,7 @@ class Premisse:
     dalalah: Score | None
     status: Status | None
     sub_premissen: list[Premisse]
+    instrument_output: dict[str, Any] | None
     vorm: dict[str, Any] | None
     termen: tuple[str, ...]
     asserts_claim: str | None
@@ -211,8 +212,13 @@ def _bouw_premisse(
     vocab.controleer("provenance_kind", invoer.provenance.kind, waar + " (provenance)")
     vocab.controleer("proposed_by", invoer.proposed_by, waar)
     citaat = invoer.citation
-    if citaat is not None:
-        vocab.controleer("verification_status", citaat.verification_status, waar + " (citaat)")
+    # Ook de standaardwaarde gaat langs de lookup: anders zou één waarde uit het
+    # vocabulaire buiten de data om gelden.
+    vocab.controleer(
+        "verification_status",
+        citaat.verification_status if citaat else "unverified",
+        waar + " (citaat)",
+    )
 
     premisse = Premisse(
         ref=invoer.id,
@@ -236,6 +242,7 @@ def _bouw_premisse(
             else None
         ),
         sub_premissen=[],
+        instrument_output=invoer.instrument_output,
         vorm=_vorm(invoer.form, waar),
         termen=tuple(invoer.terms),
         asserts_claim=invoer.asserts_claim,
@@ -372,27 +379,74 @@ def _beweerde_claims(graaf: Graaf, premisse_ref: str) -> set[str]:
 
 
 def zoek_cykels(afhankelijk: dict[str, set[str]]) -> list[tuple[str, ...]]:
-    """Zoek cirkels in de steunrelatie tussen claims."""
-    gevonden: list[tuple[str, ...]] = []
-    bezocht: set[str] = set()
-    op_stapel: list[str] = []
+    """Zoek de steunkringen in de steunrelatie tussen claims.
 
-    def loop(knoop: str) -> None:
-        if knoop in op_stapel:
-            start = op_stapel.index(knoop)
-            gevonden.append(tuple([*op_stapel[start:], knoop]))
-            return
-        if knoop in bezocht:
-            return
-        op_stapel.append(knoop)
-        for volgende in sorted(afhankelijk.get(knoop, set())):
-            loop(volgende)
-        op_stapel.pop()
-        bezocht.add(knoop)
+    Elke groep claims die elkaar wederzijds bereiken vormt één kring. Een claim
+    die zichzelf steunt vormt er ook een.
+
+    De implementatie volgt Tarjan: sterk samenhangende componenten. Een simpele
+    diepteweergave met een 'al bezocht'-markering is hier niet genoeg. Zij vindt
+    per zoektocht wel een kring, maar mist knopen die alleen via een al afgeronde
+    tak in een kring liggen. Voor deze motor is dat geen detail: een gemiste
+    kring betekent dat een claim die op zichzelf steunt een positief label krijgt
+    in plaats van een cirkelredenering.
+    """
+    index_van: dict[str, int] = {}
+    laagste: dict[str, int] = {}
+    op_stapel: dict[str, bool] = {}
+    stapel: list[str] = []
+    teller = 0
+    componenten: list[list[str]] = []
+
+    def sterk_verbonden(start: str) -> None:
+        nonlocal teller
+        werk: list[tuple[str, list[str]]] = [(start, sorted(afhankelijk.get(start, set())))]
+        index_van[start] = laagste[start] = teller
+        teller += 1
+        stapel.append(start)
+        op_stapel[start] = True
+
+        while werk:
+            knoop, resterend = werk[-1]
+            if resterend:
+                volgende = resterend.pop(0)
+                if volgende not in index_van:
+                    index_van[volgende] = laagste[volgende] = teller
+                    teller += 1
+                    stapel.append(volgende)
+                    op_stapel[volgende] = True
+                    werk.append((volgende, sorted(afhankelijk.get(volgende, set()))))
+                elif op_stapel.get(volgende):
+                    laagste[knoop] = min(laagste[knoop], index_van[volgende])
+                continue
+
+            werk.pop()
+            if werk:
+                ouder = werk[-1][0]
+                laagste[ouder] = min(laagste[ouder], laagste[knoop])
+            if laagste[knoop] == index_van[knoop]:
+                component: list[str] = []
+                while True:
+                    lid = stapel.pop()
+                    op_stapel[lid] = False
+                    component.append(lid)
+                    if lid == knoop:
+                        break
+                componenten.append(sorted(component))
 
     for knoop in sorted(afhankelijk):
-        loop(knoop)
-    return gevonden
+        if knoop not in index_van:
+            sterk_verbonden(knoop)
+
+    kringen: list[tuple[str, ...]] = []
+    for component in componenten:
+        if len(component) > 1:
+            kringen.append(tuple(component))
+        else:
+            enkel = component[0]
+            if enkel in afhankelijk.get(enkel, set()):
+                kringen.append((enkel,))
+    return sorted(kringen)
 
 
 def steunkringen(graaf: Graaf) -> list[tuple[str, ...]]:
@@ -421,10 +475,3 @@ def topologische_volgorde(afhankelijk: dict[str, set[str]], in_cykel: set[str]) 
     for knoop in sorted(afhankelijk):
         loop(knoop)
     return klaar
-
-
-@dataclass
-class Steunpad:
-    """Hulpstructuur voor de rapportage van de keten."""
-
-    elementen: list[str] = field(default_factory=list)

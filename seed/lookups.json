@@ -5,247 +5,774 @@
     "strength_label": {
       "_toelichting": "Ordinale sterkteschaal per §3. rangorde bepaalt de ordening voor min en max; de rangorde verlaat de motor nooit als uitvoer.",
       "rijen": [
-        {"key": "certain", "label_nl": "zeker", "label_en": "certain", "rangorde": 4, "omschrijving": "Hoogste haalbare label."},
-        {"key": "strong", "label_nl": "sterk", "label_en": "strong", "rangorde": 3, "omschrijving": "Stevig onderbouwd, niet zeker."},
-        {"key": "probable", "label_nl": "waarschijnlijk", "label_en": "probable", "rangorde": 2, "omschrijving": "Meer voor dan tegen."},
-        {"key": "weak", "label_nl": "zwak", "label_en": "weak", "rangorde": 1, "omschrijving": "Nauwelijks gedragen."},
-        {"key": "undetermined", "label_nl": "onbepaald", "label_en": "undetermined", "rangorde": 0, "omschrijving": "Niet vastgesteld. Gedraagt zich bij de zwakste-schakelregel als laagste waarde, omdat onbekende sterkte geen sterkte levert."}
+        {
+          "key": "certain",
+          "label_nl": "zeker",
+          "label_en": "certain",
+          "rangorde": 4,
+          "omschrijving": "Hoogste haalbare label."
+        },
+        {
+          "key": "strong",
+          "label_nl": "sterk",
+          "label_en": "strong",
+          "rangorde": 3,
+          "omschrijving": "Stevig onderbouwd, niet zeker."
+        },
+        {
+          "key": "probable",
+          "label_nl": "waarschijnlijk",
+          "label_en": "probable",
+          "rangorde": 2,
+          "omschrijving": "Meer voor dan tegen."
+        },
+        {
+          "key": "weak",
+          "label_nl": "zwak",
+          "label_en": "weak",
+          "rangorde": 1,
+          "omschrijving": "Nauwelijks gedragen."
+        },
+        {
+          "key": "undetermined",
+          "label_nl": "onbepaald",
+          "label_en": "undetermined",
+          "rangorde": 0,
+          "omschrijving": "Niet vastgesteld. Gedraagt zich bij de zwakste-schakelregel als laagste waarde, omdat onbekende sterkte geen sterkte levert."
+        }
       ]
     },
     "premise_type": {
       "_toelichting": "Minimumverzameling per §5.5. Profielen mogen typen toevoegen of weglaten; de koppeling profiel-type en de plafonds komen in fase 3.",
       "rijen": [
-        {"key": "revelation_text", "label_nl": "openbaringstekst", "label_en": "revelation text"},
-        {"key": "transmitted_report", "label_nl": "overlevering", "label_en": "transmitted report"},
-        {"key": "consensus_claim", "label_nl": "consensusclaim", "label_en": "consensus claim"},
-        {"key": "sense_observation", "label_nl": "zintuiglijke waarneming", "label_en": "sense observation"},
-        {"key": "empirical_study", "label_nl": "empirische studie", "label_en": "empirical study"},
-        {"key": "rational_intuition", "label_nl": "redelijk inzicht", "label_en": "rational intuition"},
-        {"key": "expert_testimony", "label_nl": "deskundigenverklaring", "label_en": "expert testimony"}
+        {
+          "key": "revelation_text",
+          "label_nl": "openbaringstekst",
+          "label_en": "revelation text"
+        },
+        {
+          "key": "transmitted_report",
+          "label_nl": "overlevering",
+          "label_en": "transmitted report"
+        },
+        {
+          "key": "consensus_claim",
+          "label_nl": "consensusclaim",
+          "label_en": "consensus claim"
+        },
+        {
+          "key": "sense_observation",
+          "label_nl": "zintuiglijke waarneming",
+          "label_en": "sense observation"
+        },
+        {
+          "key": "empirical_study",
+          "label_nl": "empirische studie",
+          "label_en": "empirical study"
+        },
+        {
+          "key": "rational_intuition",
+          "label_nl": "redelijk inzicht",
+          "label_en": "rational intuition"
+        },
+        {
+          "key": "expert_testimony",
+          "label_nl": "deskundigenverklaring",
+          "label_en": "expert testimony"
+        }
       ]
     },
     "scheme": {
       "_toelichting": "Argumentatieschema's per §5.8. De lijst is niet gesloten.",
       "rijen": [
-        {"key": "deductive", "label_nl": "deductief", "label_en": "deductive"},
-        {"key": "expert_opinion", "label_nl": "beroep op deskundigheid", "label_en": "expert opinion"},
-        {"key": "analogy", "label_nl": "analogie", "label_en": "analogy"},
-        {"key": "precedent", "label_nl": "precedent", "label_en": "precedent"},
-        {"key": "sign", "label_nl": "teken", "label_en": "sign"},
-        {"key": "consequences", "label_nl": "beroep op gevolgen", "label_en": "consequences"},
-        {"key": "practical_reasoning", "label_nl": "praktisch redeneren", "label_en": "practical reasoning"},
-        {"key": "ignorance_or_silence", "label_nl": "beroep op onwetendheid of zwijgen", "label_en": "ignorance or silence"},
-        {"key": "inconsistent_commitment", "label_nl": "beroep op inconsistentie", "label_en": "inconsistent commitment"}
+        {
+          "key": "deductive",
+          "label_nl": "deductief",
+          "label_en": "deductive"
+        },
+        {
+          "key": "expert_opinion",
+          "label_nl": "beroep op deskundigheid",
+          "label_en": "expert opinion"
+        },
+        {
+          "key": "analogy",
+          "label_nl": "analogie",
+          "label_en": "analogy"
+        },
+        {
+          "key": "precedent",
+          "label_nl": "precedent",
+          "label_en": "precedent"
+        },
+        {
+          "key": "sign",
+          "label_nl": "teken",
+          "label_en": "sign"
+        },
+        {
+          "key": "consequences",
+          "label_nl": "beroep op gevolgen",
+          "label_en": "consequences"
+        },
+        {
+          "key": "practical_reasoning",
+          "label_nl": "praktisch redeneren",
+          "label_en": "practical reasoning"
+        },
+        {
+          "key": "ignorance_or_silence",
+          "label_nl": "beroep op onwetendheid of zwijgen",
+          "label_en": "ignorance or silence"
+        },
+        {
+          "key": "inconsistent_commitment",
+          "label_nl": "beroep op inconsistentie",
+          "label_en": "inconsistent commitment"
+        }
       ]
     },
     "relation_type": {
       "_toelichting": "Relatiesoorten voor de ene generieke relatietabel (randvoorwaarde §2.10). relies_on is toegevoegd voor interpretatie naar qaida (§4.3: interpretaties verwijzen, dupliceren niet).",
       "rijen": [
-        {"key": "depends_on", "label_nl": "hangt af van", "label_en": "depends on"},
-        {"key": "attacks", "label_nl": "valt aan", "label_en": "attacks"},
-        {"key": "supports", "label_nl": "steunt", "label_en": "supports"},
-        {"key": "relies_on", "label_nl": "beroept zich op", "label_en": "relies on"}
+        {
+          "key": "depends_on",
+          "label_nl": "hangt af van",
+          "label_en": "depends on"
+        },
+        {
+          "key": "attacks",
+          "label_nl": "valt aan",
+          "label_en": "attacks"
+        },
+        {
+          "key": "supports",
+          "label_nl": "steunt",
+          "label_en": "supports"
+        },
+        {
+          "key": "relies_on",
+          "label_nl": "beroept zich op",
+          "label_en": "relies on"
+        }
       ]
     },
     "node_kind": {
       "_toelichting": "Soorten knopen die aan een generieke relatie, een auditregel of een beoordelingsafhankelijkheid kunnen hangen.",
       "rijen": [
-        {"key": "kernel_rule", "label_nl": "kernregel", "label_en": "kernel rule"},
-        {"key": "qaida", "label_nl": "qaida", "label_en": "qaida"},
-        {"key": "profile", "label_nl": "profiel", "label_en": "profile"},
-        {"key": "premise", "label_nl": "premisse", "label_en": "premise"},
-        {"key": "premise_type", "label_nl": "premissetype", "label_en": "premise type"},
-        {"key": "claim", "label_nl": "claim", "label_en": "claim"},
-        {"key": "inference", "label_nl": "inferentie", "label_en": "inference"},
-        {"key": "interpretation", "label_nl": "interpretatie", "label_en": "interpretation"},
-        {"key": "assessment", "label_nl": "beoordeling", "label_en": "assessment"},
-        {"key": "comparison", "label_nl": "vergelijking", "label_en": "comparison"},
-        {"key": "taxonomy_entry", "label_nl": "taxonomie-ingang", "label_en": "taxonomy entry"},
-        {"key": "domain_partition", "label_nl": "domeinpartitie", "label_en": "domain partition"},
-        {"key": "corpus_document", "label_nl": "corpusdocument", "label_en": "corpus document"},
-        {"key": "instrument", "label_nl": "instrument", "label_en": "instrument"},
-        {"key": "critical_question", "label_nl": "kritische vraag", "label_en": "critical question"}
+        {
+          "key": "kernel_rule",
+          "label_nl": "kernregel",
+          "label_en": "kernel rule"
+        },
+        {
+          "key": "qaida",
+          "label_nl": "qaida",
+          "label_en": "qaida"
+        },
+        {
+          "key": "profile",
+          "label_nl": "profiel",
+          "label_en": "profile"
+        },
+        {
+          "key": "premise",
+          "label_nl": "premisse",
+          "label_en": "premise"
+        },
+        {
+          "key": "premise_type",
+          "label_nl": "premissetype",
+          "label_en": "premise type"
+        },
+        {
+          "key": "claim",
+          "label_nl": "claim",
+          "label_en": "claim"
+        },
+        {
+          "key": "inference",
+          "label_nl": "inferentie",
+          "label_en": "inference"
+        },
+        {
+          "key": "interpretation",
+          "label_nl": "interpretatie",
+          "label_en": "interpretation"
+        },
+        {
+          "key": "assessment",
+          "label_nl": "beoordeling",
+          "label_en": "assessment"
+        },
+        {
+          "key": "comparison",
+          "label_nl": "vergelijking",
+          "label_en": "comparison"
+        },
+        {
+          "key": "taxonomy_entry",
+          "label_nl": "taxonomie-ingang",
+          "label_en": "taxonomy entry"
+        },
+        {
+          "key": "domain_partition",
+          "label_nl": "domeinpartitie",
+          "label_en": "domain partition"
+        },
+        {
+          "key": "corpus_document",
+          "label_nl": "corpusdocument",
+          "label_en": "corpus document"
+        },
+        {
+          "key": "instrument",
+          "label_nl": "instrument",
+          "label_en": "instrument"
+        },
+        {
+          "key": "critical_question",
+          "label_nl": "kritische vraag",
+          "label_en": "critical question"
+        }
       ]
     },
     "qaida_function": {
       "_toelichting": "Welke knop van de motor een qaida zet (§5.3).",
       "rijen": [
-        {"key": "prior", "label_nl": "uitgangswaarde", "label_en": "prior"},
-        {"key": "burden", "label_nl": "bewijslast", "label_en": "burden"},
-        {"key": "scope", "label_nl": "reikwijdte", "label_en": "scope"},
-        {"key": "precedence", "label_nl": "voorrang", "label_en": "precedence"},
-        {"key": "threshold", "label_nl": "drempel", "label_en": "threshold"},
-        {"key": "conflict_order", "label_nl": "conflictvolgorde", "label_en": "conflict order"}
+        {
+          "key": "prior",
+          "label_nl": "uitgangswaarde",
+          "label_en": "prior"
+        },
+        {
+          "key": "burden",
+          "label_nl": "bewijslast",
+          "label_en": "burden"
+        },
+        {
+          "key": "scope",
+          "label_nl": "reikwijdte",
+          "label_en": "scope"
+        },
+        {
+          "key": "precedence",
+          "label_nl": "voorrang",
+          "label_en": "precedence"
+        },
+        {
+          "key": "threshold",
+          "label_nl": "drempel",
+          "label_en": "threshold"
+        },
+        {
+          "key": "conflict_order",
+          "label_nl": "conflictvolgorde",
+          "label_en": "conflict order"
+        }
       ]
     },
     "derivation_method": {
       "rijen": [
-        {"key": "nass", "label_nl": "tekstbewijs", "label_en": "text evidence"},
-        {"key": "ijma", "label_nl": "consensus", "label_en": "consensus"},
-        {"key": "istiqra", "label_nl": "inductie over gevallen", "label_en": "induction over cases"},
-        {"key": "takhrij_al_furu", "label_nl": "afleiding uit afgeleide kwesties", "label_en": "derivation from cases"},
-        {"key": "rational_axiom", "label_nl": "redelijk uitgangspunt", "label_en": "rational axiom"}
+        {
+          "key": "nass",
+          "label_nl": "tekstbewijs",
+          "label_en": "text evidence"
+        },
+        {
+          "key": "ijma",
+          "label_nl": "consensus",
+          "label_en": "consensus"
+        },
+        {
+          "key": "istiqra",
+          "label_nl": "inductie over gevallen",
+          "label_en": "induction over cases"
+        },
+        {
+          "key": "takhrij_al_furu",
+          "label_nl": "afleiding uit afgeleide kwesties",
+          "label_en": "derivation from cases"
+        },
+        {
+          "key": "rational_axiom",
+          "label_nl": "redelijk uitgangspunt",
+          "label_en": "rational axiom"
+        }
       ]
     },
     "qaida_status": {
       "rijen": [
-        {"key": "active", "label_nl": "actief", "label_en": "active"},
-        {"key": "contested", "label_nl": "betwist", "label_en": "contested"},
-        {"key": "rejected", "label_nl": "verworpen", "label_en": "rejected"},
-        {"key": "conflicts_with_kernel", "label_nl": "in strijd met de kern", "label_en": "conflicts with kernel"},
-        {"key": "not_independently_decidable", "label_nl": "niet zelfstandig beslisbaar", "label_en": "not independently decidable"},
-        {"key": "defeated", "label_nl": "verslagen", "label_en": "defeated"}
+        {
+          "key": "active",
+          "label_nl": "actief",
+          "label_en": "active"
+        },
+        {
+          "key": "contested",
+          "label_nl": "betwist",
+          "label_en": "contested"
+        },
+        {
+          "key": "rejected",
+          "label_nl": "verworpen",
+          "label_en": "rejected"
+        },
+        {
+          "key": "conflicts_with_kernel",
+          "label_nl": "in strijd met de kern",
+          "label_en": "conflicts with kernel"
+        },
+        {
+          "key": "not_independently_decidable",
+          "label_nl": "niet zelfstandig beslisbaar",
+          "label_en": "not independently decidable"
+        },
+        {
+          "key": "defeated",
+          "label_nl": "verslagen",
+          "label_en": "defeated"
+        }
       ]
     },
     "verification_status": {
       "_toelichting": "Citaatintegriteit per §5.6, los van de sterkte van de claim.",
       "rijen": [
-        {"key": "verified", "label_nl": "geverifieerd", "label_en": "verified"},
-        {"key": "unverified", "label_nl": "niet geverifieerd", "label_en": "unverified"},
-        {"key": "corrected", "label_nl": "gecorrigeerd", "label_en": "corrected"},
-        {"key": "disputed", "label_nl": "betwist", "label_en": "disputed"}
+        {
+          "key": "verified",
+          "label_nl": "geverifieerd",
+          "label_en": "verified"
+        },
+        {
+          "key": "unverified",
+          "label_nl": "niet geverifieerd",
+          "label_en": "unverified"
+        },
+        {
+          "key": "corrected",
+          "label_nl": "gecorrigeerd",
+          "label_en": "corrected"
+        },
+        {
+          "key": "disputed",
+          "label_nl": "betwist",
+          "label_en": "disputed"
+        }
       ]
     },
     "proposed_by": {
       "_toelichting": "Wie de structuur heeft voorgesteld. 'engine' hoort bij een door de motor voorgestelde mogelijk verzwegen premisse en telt niet mee in de sterkte tot bevestiging.",
       "rijen": [
-        {"key": "user", "label_nl": "gebruiker", "label_en": "user"},
-        {"key": "llm", "label_nl": "taalmodel", "label_en": "language model"},
-        {"key": "import", "label_nl": "import", "label_en": "import"},
-        {"key": "engine", "label_nl": "motor", "label_en": "engine"}
+        {
+          "key": "user",
+          "label_nl": "gebruiker",
+          "label_en": "user"
+        },
+        {
+          "key": "llm",
+          "label_nl": "taalmodel",
+          "label_en": "language model"
+        },
+        {
+          "key": "import",
+          "label_nl": "import",
+          "label_en": "import"
+        },
+        {
+          "key": "engine",
+          "label_nl": "motor",
+          "label_en": "engine"
+        }
       ]
     },
     "provenance_kind": {
       "_toelichting": "Herkomst van het materiaal van een premisse (§5.6, verplicht). Onderscheiden van proposed_by: proposed_by zegt wie de structuur voorstelde, provenance zegt waar het materiaal vandaan komt. retrieved_from_corpus draagt de gebruiksvormen aanvallen en verdedigen (§4.4) zonder migratie.",
       "rijen": [
-        {"key": "submitted_by_user", "label_nl": "aangeleverd door gebruiker", "label_en": "submitted by user"},
-        {"key": "retrieved_from_corpus", "label_nl": "opgehaald uit corpus", "label_en": "retrieved from corpus"},
-        {"key": "proposed_by_engine", "label_nl": "voorgesteld door de motor", "label_en": "proposed by engine"},
-        {"key": "proposed_by_llm", "label_nl": "voorgesteld door taalmodel", "label_en": "proposed by language model"},
-        {"key": "imported", "label_nl": "geïmporteerd", "label_en": "imported"}
+        {
+          "key": "submitted_by_user",
+          "label_nl": "aangeleverd door gebruiker",
+          "label_en": "submitted by user"
+        },
+        {
+          "key": "retrieved_from_corpus",
+          "label_nl": "opgehaald uit corpus",
+          "label_en": "retrieved from corpus"
+        },
+        {
+          "key": "proposed_by_engine",
+          "label_nl": "voorgesteld door de motor",
+          "label_en": "proposed by engine"
+        },
+        {
+          "key": "proposed_by_llm",
+          "label_nl": "voorgesteld door taalmodel",
+          "label_en": "proposed by language model"
+        },
+        {
+          "key": "imported",
+          "label_nl": "geïmporteerd",
+          "label_en": "imported"
+        }
       ]
     },
     "score_source": {
       "_toelichting": "Wie de score heeft bepaald. manual_input blijft onderscheidbaar van instrument-uitvoer, zodat fase 3 de twee niet vermengt.",
       "rijen": [
-        {"key": "manual_input", "label_nl": "handmatige invoer", "label_en": "manual input"},
-        {"key": "engine_kernel", "label_nl": "kern van de motor", "label_en": "engine kernel"},
-        {"key": "instrument", "label_nl": "instrument", "label_en": "instrument"},
-        {"key": "llm_proposal", "label_nl": "voorstel taalmodel", "label_en": "language model proposal"},
-        {"key": "import", "label_nl": "import", "label_en": "import"}
+        {
+          "key": "manual_input",
+          "label_nl": "handmatige invoer",
+          "label_en": "manual input"
+        },
+        {
+          "key": "engine_kernel",
+          "label_nl": "kern van de motor",
+          "label_en": "engine kernel"
+        },
+        {
+          "key": "instrument",
+          "label_nl": "instrument",
+          "label_en": "instrument"
+        },
+        {
+          "key": "llm_proposal",
+          "label_nl": "voorstel taalmodel",
+          "label_en": "language model proposal"
+        },
+        {
+          "key": "import",
+          "label_nl": "import",
+          "label_en": "import"
+        }
       ]
     },
     "critical_question_status": {
       "rijen": [
-        {"key": "answered", "label_nl": "beantwoord", "label_en": "answered"},
-        {"key": "unanswered", "label_nl": "onbeantwoord", "label_en": "unanswered"},
-        {"key": "failed", "label_nl": "gefaald", "label_en": "failed"}
+        {
+          "key": "answered",
+          "label_nl": "beantwoord",
+          "label_en": "answered"
+        },
+        {
+          "key": "unanswered",
+          "label_nl": "onbeantwoord",
+          "label_en": "unanswered"
+        },
+        {
+          "key": "failed",
+          "label_nl": "gefaald",
+          "label_en": "failed"
+        }
       ]
     },
     "critical_question_effect": {
       "rijen": [
-        {"key": "undercut", "label_nl": "ondergraaft de stap", "label_en": "undercut"},
-        {"key": "undermine", "label_nl": "ondermijnt een premisse", "label_en": "undermine"},
-        {"key": "none", "label_nl": "geen", "label_en": "none"}
+        {
+          "key": "undercut",
+          "label_nl": "ondergraaft de stap",
+          "label_en": "undercut"
+        },
+        {
+          "key": "undermine",
+          "label_nl": "ondermijnt een premisse",
+          "label_en": "undermine"
+        },
+        {
+          "key": "none",
+          "label_nl": "geen",
+          "label_en": "none"
+        }
       ]
     },
     "critical_question_origin": {
       "_toelichting": "Herkomst van een kritische vraag (§5.8). Basisvragen horen bij het schema zelf; profielvragen worden door een qaida toegevoegd en verwijzen naar die qaida.",
       "rijen": [
-        {"key": "base", "label_nl": "basisvraag bij het schema", "label_en": "base question of the scheme"},
-        {"key": "profile", "label_nl": "door een profiel toegevoegd", "label_en": "added by a profile"}
+        {
+          "key": "base",
+          "label_nl": "basisvraag bij het schema",
+          "label_en": "base question of the scheme"
+        },
+        {
+          "key": "profile",
+          "label_nl": "door een profiel toegevoegd",
+          "label_en": "added by a profile"
+        },
+        {
+          "key": "input",
+          "label_nl": "aangeleverd bij de invoer",
+          "label_en": "supplied with the submission",
+          "omschrijving": "een vraag die de indiener zelf stelde en die niet in de geseede vragenset staat"
+        }
       ]
     },
     "ground_kind": {
       "rijen": [
-        {"key": "lexical", "label_nl": "woordbetekenis", "label_en": "lexical"},
-        {"key": "context", "label_nl": "context", "label_en": "context"},
-        {"key": "parallel_text", "label_nl": "paralleltekst", "label_en": "parallel text"},
-        {"key": "qarina", "label_nl": "aanwijzing", "label_en": "indication"}
+        {
+          "key": "lexical",
+          "label_nl": "woordbetekenis",
+          "label_en": "lexical"
+        },
+        {
+          "key": "context",
+          "label_nl": "context",
+          "label_en": "context"
+        },
+        {
+          "key": "parallel_text",
+          "label_nl": "paralleltekst",
+          "label_en": "parallel text"
+        },
+        {
+          "key": "qarina",
+          "label_nl": "aanwijzing",
+          "label_en": "indication"
+        }
       ]
     },
     "burden_allocation": {
       "_toelichting": "B1. Profielinstelling, uitdrukkelijk geen kernregel.",
       "rijen": [
-        {"key": "claimant", "label_nl": "bij wie de bewering doet", "label_en": "claimant"},
-        {"key": "departer_from_status_quo", "label_nl": "bij wie afwijkt van de bestaande toestand", "label_en": "departer from status quo"},
-        {"key": "affirmer_if_evidenced", "label_nl": "bij wie bevestigt, mits van bewijs voorzien", "label_en": "affirmer if evidenced"}
+        {
+          "key": "claimant",
+          "label_nl": "bij wie de bewering doet",
+          "label_en": "claimant"
+        },
+        {
+          "key": "departer_from_status_quo",
+          "label_nl": "bij wie afwijkt van de bestaande toestand",
+          "label_en": "departer from status quo"
+        },
+        {
+          "key": "affirmer_if_evidenced",
+          "label_nl": "bij wie bevestigt, mits van bewijs voorzien",
+          "label_en": "affirmer if evidenced"
+        }
       ]
     },
     "scope_relation": {
       "rijen": [
-        {"key": "disjoint", "label_nl": "disjunct", "label_en": "disjoint"},
-        {"key": "subset", "label_nl": "deelverzameling", "label_en": "subset"},
-        {"key": "overlap", "label_nl": "overlap", "label_en": "overlap"},
-        {"key": "identical", "label_nl": "gelijk", "label_en": "identical"}
+        {
+          "key": "disjoint",
+          "label_nl": "disjunct",
+          "label_en": "disjoint"
+        },
+        {
+          "key": "subset",
+          "label_nl": "deelverzameling",
+          "label_en": "subset"
+        },
+        {
+          "key": "overlap",
+          "label_nl": "overlap",
+          "label_en": "overlap"
+        },
+        {
+          "key": "identical",
+          "label_nl": "gelijk",
+          "label_en": "identical"
+        }
       ]
     },
     "use_form": {
       "_toelichting": "De vier gebruiksvormen (§1 en §4.4). Fase 1 bouwt uitsluitend 'assess'; de overige rijen bestaan zodat schema en register ze zonder migratie kunnen opnemen.",
       "rijen": [
-        {"key": "assess", "label_nl": "toetsen", "label_en": "assess"},
-        {"key": "compare", "label_nl": "vergelijken", "label_en": "compare"},
-        {"key": "attack", "label_nl": "aanvallen", "label_en": "attack"},
-        {"key": "defend", "label_nl": "verdedigen", "label_en": "defend"}
+        {
+          "key": "assess",
+          "label_nl": "toetsen",
+          "label_en": "assess"
+        },
+        {
+          "key": "compare",
+          "label_nl": "vergelijken",
+          "label_en": "compare"
+        },
+        {
+          "key": "attack",
+          "label_nl": "aanvallen",
+          "label_en": "attack"
+        },
+        {
+          "key": "defend",
+          "label_nl": "verdedigen",
+          "label_en": "defend"
+        }
       ]
     },
     "form_kind": {
       "_toelichting": "Logische vormen die de motor formeel kan toetsen. De lijst is niet gesloten; fase 1 toetst uitsluitend deze vier.",
       "rijen": [
-        {"key": "atomic", "label_nl": "atomair", "label_en": "atomic"},
-        {"key": "negation", "label_nl": "ontkenning", "label_en": "negation"},
-        {"key": "conditional", "label_nl": "voorwaardelijk", "label_en": "conditional"},
-        {"key": "categorical", "label_nl": "categorisch", "label_en": "categorical"}
+        {
+          "key": "atomic",
+          "label_nl": "atomair",
+          "label_en": "atomic"
+        },
+        {
+          "key": "negation",
+          "label_nl": "ontkenning",
+          "label_en": "negation"
+        },
+        {
+          "key": "conditional",
+          "label_nl": "voorwaardelijk",
+          "label_en": "conditional"
+        },
+        {
+          "key": "categorical",
+          "label_nl": "categorisch",
+          "label_en": "categorical"
+        }
       ]
     },
     "categorical_quantity": {
       "_toelichting": "De vier categorische vormen. Distributie per vorm staat in de kolommen; zie docs/conventies-fase1.md voor de moderne lezing zonder existentiële import.",
       "rijen": [
-        {"key": "all", "label_nl": "alle S zijn P", "label_en": "all S are P"},
-        {"key": "no", "label_nl": "geen S is P", "label_en": "no S is P"},
-        {"key": "some", "label_nl": "sommige S zijn P", "label_en": "some S are P"},
-        {"key": "some_not", "label_nl": "sommige S zijn niet P", "label_en": "some S are not P"}
+        {
+          "key": "all",
+          "label_nl": "alle S zijn P",
+          "label_en": "all S are P"
+        },
+        {
+          "key": "no",
+          "label_nl": "geen S is P",
+          "label_en": "no S is P"
+        },
+        {
+          "key": "some",
+          "label_nl": "sommige S zijn P",
+          "label_en": "some S are P"
+        },
+        {
+          "key": "some_not",
+          "label_nl": "sommige S zijn niet P",
+          "label_en": "some S are not P"
+        }
       ]
     },
     "form_status": {
       "rijen": [
-        {"key": "valid", "label_nl": "geldig", "label_en": "valid", "kernregel": "vorm_versus_waarheid"},
-        {"key": "invalid", "label_nl": "ongeldig", "label_en": "invalid", "kernregel": "vorm_versus_waarheid"},
-        {"key": "not_testable", "label_nl": "niet formeel toetsbaar", "label_en": "not formally testable", "kernregel": "vorm_versus_waarheid"}
+        {
+          "key": "valid",
+          "label_nl": "geldig",
+          "label_en": "valid",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "invalid",
+          "label_nl": "ongeldig",
+          "label_en": "invalid",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "not_testable",
+          "label_nl": "niet formeel toetsbaar",
+          "label_en": "not formally testable",
+          "kernregel": "vorm_versus_waarheid"
+        }
       ]
     },
     "fallacy_type": {
       "_toelichting": "Fase 1 kent uitsluitend structurele en formele drogredenen. Informele drogredenen komen later en vallen dan vaak samen met een schema waarvan de kritische vragen falen; dubbel tellen is verboden (§6 stap 7).",
       "rijen": [
-        {"key": "affirming_the_consequent", "label_nl": "bevestigen van het consequens", "label_en": "affirming the consequent", "kernregel": "vorm_versus_waarheid"},
-        {"key": "denying_the_antecedent", "label_nl": "ontkennen van het antecedent", "label_en": "denying the antecedent", "kernregel": "vorm_versus_waarheid"},
-        {"key": "undistributed_middle", "label_nl": "onverdeelde middenterm", "label_en": "undistributed middle", "kernregel": "vorm_versus_waarheid"},
-        {"key": "circular_reasoning", "label_nl": "cirkelredenering", "label_en": "circular reasoning", "kernregel": "steun_en_bewijslast"},
-        {"key": "invalid_form_unnamed", "label_nl": "ongeldige vorm zonder eigen naam", "label_en": "invalid form, unnamed", "kernregel": "vorm_versus_waarheid"},
-        {"key": "contradictory_premises", "label_nl": "elkaar tegensprekende premissen", "label_en": "contradictory premises", "kernregel": "non_contradictie"}
+        {
+          "key": "affirming_the_consequent",
+          "label_nl": "bevestigen van het consequens",
+          "label_en": "affirming the consequent",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "denying_the_antecedent",
+          "label_nl": "ontkennen van het antecedent",
+          "label_en": "denying the antecedent",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "undistributed_middle",
+          "label_nl": "onverdeelde middenterm",
+          "label_en": "undistributed middle",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "circular_reasoning",
+          "label_nl": "cirkelredenering",
+          "label_en": "circular reasoning",
+          "kernregel": "steun_en_bewijslast"
+        },
+        {
+          "key": "invalid_form_unnamed",
+          "label_nl": "ongeldige vorm zonder eigen naam",
+          "label_en": "invalid form, unnamed",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "contradictory_premises",
+          "label_nl": "elkaar tegensprekende premissen",
+          "label_en": "contradictory premises",
+          "kernregel": "non_contradictie"
+        }
       ]
     },
     "unstated_premise_basis": {
       "_toelichting": "Op welke toets een mogelijk verzwegen premisse berust. Beide zijn heuristieken, geen bewijs van een gat (§4.5).",
       "rijen": [
-        {"key": "form_completion", "label_nl": "vormaanvulling", "label_en": "form completion", "kernregel": "vorm_versus_waarheid"},
-        {"key": "term_coverage", "label_nl": "termdekking", "label_en": "term coverage", "kernregel": "oordeel_vereist_begrip"}
+        {
+          "key": "form_completion",
+          "label_nl": "vormaanvulling",
+          "label_en": "form completion",
+          "kernregel": "vorm_versus_waarheid"
+        },
+        {
+          "key": "term_coverage",
+          "label_nl": "termdekking",
+          "label_en": "term coverage",
+          "kernregel": "oordeel_vereist_begrip"
+        }
       ]
     },
     "tipping_direction": {
       "rijen": [
-        {"key": "upward", "label_nl": "omhoog", "label_en": "upward"},
-        {"key": "downward", "label_nl": "omlaag", "label_en": "downward"}
+        {
+          "key": "upward",
+          "label_nl": "omhoog",
+          "label_en": "upward"
+        },
+        {
+          "key": "downward",
+          "label_nl": "omlaag",
+          "label_en": "downward"
+        }
       ]
     },
     "audit_action": {
       "rijen": [
-        {"key": "seed", "label_nl": "seed geladen", "label_en": "seed loaded"},
-        {"key": "create", "label_nl": "aangemaakt", "label_en": "created"},
-        {"key": "update", "label_nl": "gewijzigd", "label_en": "updated"},
-        {"key": "status_change", "label_nl": "status gewijzigd", "label_en": "status changed"},
-        {"key": "delete", "label_nl": "verwijderd", "label_en": "deleted"},
-        {"key": "blocked", "label_nl": "geweigerd", "label_en": "blocked"}
+        {
+          "key": "seed",
+          "label_nl": "seed geladen",
+          "label_en": "seed loaded"
+        },
+        {
+          "key": "create",
+          "label_nl": "aangemaakt",
+          "label_en": "created"
+        },
+        {
+          "key": "update",
+          "label_nl": "gewijzigd",
+          "label_en": "updated"
+        },
+        {
+          "key": "status_change",
+          "label_nl": "status gewijzigd",
+          "label_en": "status changed"
+        },
+        {
+          "key": "delete",
+          "label_nl": "verwijderd",
+          "label_en": "deleted"
+        },
+        {
+          "key": "blocked",
+          "label_nl": "geweigerd",
+          "label_en": "blocked"
+        }
       ]
     }
   }

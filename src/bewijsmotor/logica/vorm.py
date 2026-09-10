@@ -37,6 +37,11 @@ from typing import Any
 
 PROPOSITIONEEL = ("atomic", "negation", "conditional")
 MAX_ATOMEN = 14
+# De zoektocht naar mogelijk verzwegen premissen is duurder dan de vormtoets:
+# zij bouwt kandidaten over alle termen en vergelijkt ze onderling. Boven deze
+# grens wordt zij overgeslagen, en dat wordt gemeld in plaats van stilzwijgend
+# als "geen kandidaten gevonden" gerapporteerd.
+MAX_ATOMEN_KANDIDATEN = 10
 
 NEGATIEVE_KWANTITEITEN = frozenset({"no", "some_not"})
 PARTICULIERE_KWANTITEITEN = frozenset({"some", "some_not"})
@@ -66,7 +71,13 @@ def normaliseer(vorm: Any) -> dict[str, Any]:
     if soort == "negation":
         if "of" not in vorm:
             raise VormFout("een ontkenning heeft 'of' nodig")
-        return {"kind": "negation", "of": normaliseer(vorm["of"])}
+        binnenste = normaliseer(vorm["of"])
+        # Een dubbele ontkenning valt weg. Zonder deze stap zou 'niet niet p'
+        # als een andere propositie gelden dan 'p', en dan herkent de motor
+        # bijvoorbeeld het ontkennen van het antecedent niet meer.
+        if binnenste["kind"] == "negation":
+            return binnenste["of"]
+        return {"kind": "negation", "of": binnenste}
     if soort == "conditional":
         if "antecedent" not in vorm or "consequent" not in vorm:
             raise VormFout("een voorwaardelijke vorm heeft 'antecedent' en 'consequent' nodig")
@@ -113,7 +124,20 @@ def weergave(vorm: dict[str, Any]) -> str:
 
 
 def is_propositioneel(vorm: dict[str, Any]) -> bool:
-    return vorm["kind"] in PROPOSITIONEEL
+    """Is deze vorm met een waarderingstabel te toetsen?
+
+    Een ontkenning of implicatie telt alleen mee als alles wat zij omsluit dat
+    ook doet. Anders zou een ontkende categorische bewering als propositioneel
+    gelden en zou de waarderingstabel erop stukbreken.
+    """
+    soort = vorm["kind"]
+    if soort == "atomic":
+        return True
+    if soort == "negation":
+        return is_propositioneel(vorm["of"])
+    if soort == "conditional":
+        return is_propositioneel(vorm["antecedent"]) and is_propositioneel(vorm["consequent"])
+    return False
 
 
 def atomen(vorm: dict[str, Any]) -> set[str]:
@@ -219,6 +243,8 @@ def syllogisme_geldig(
             f"er zijn er {'meer' if len(premissen) > 2 else 'minder'} aangeleverd",
             None,
         )
+    # Let op: deze uitkomst betekent 'niet als syllogisme te toetsen', niet
+    # 'ongeldig'. De aanroeper vertaalt haar naar not_testable.
 
     alle_termen = _termen(premissen[0]) | _termen(premissen[1]) | _termen(conclusie)
     if len(alle_termen) != 3:
@@ -229,15 +255,47 @@ def syllogisme_geldig(
             "invalid_form_unnamed",
         )
 
-    middenterm_kandidaten = _termen(premissen[0]) & _termen(premissen[1]) - _termen(conclusie)
-    if len(middenterm_kandidaten) != 1:
+    # De structuurtoets moet verder gaan dan het tellen van drie verschillende
+    # termen. Elke term hoort precies twee keer voor te komen: de conclusietermen
+    # elk in één premisse, en de middenterm in beide. Telt de motor alleen het
+    # aantal verschillende termen, dan laat zij een conclusie door met een term
+    # die in geen enkele premisse staat, en dat is zekerheid uit niets.
+    kleine_term = conclusie["subject"]
+    grote_term = conclusie["predicate"]
+    if kleine_term == grote_term:
         return (
             False,
-            "er is geen enkele term die in beide premissen voorkomt en niet in de conclusie; "
-            "zonder middenterm verbinden de premissen niets",
+            "de conclusie heeft dezelfde term als onderwerp en als gezegde",
             "invalid_form_unnamed",
         )
-    midden = middenterm_kandidaten.pop()
+    midden_kandidaten = alle_termen - {kleine_term, grote_term}
+    if len(midden_kandidaten) != 1:
+        return (
+            False,
+            "de premissen en de conclusie delen geen enkele middenterm",
+            "invalid_form_unnamed",
+        )
+    midden = midden_kandidaten.pop()
+
+    for term, rol in ((kleine_term, "onderwerp"), (grote_term, "gezegde")):
+        dragend = [p for p in premissen if term in _termen(p)]
+        if len(dragend) != 1:
+            hoeveel = "in geen enkele premisse" if not dragend else "in beide premissen"
+            return (
+                False,
+                f"de term '{term}' staat als {rol} in de conclusie maar {hoeveel}; "
+                "de premissen dragen die term dan niet",
+                "invalid_form_unnamed",
+            )
+    for premisse in premissen:
+        if midden not in _termen(premisse):
+            return (
+                False,
+                f"de middenterm '{midden}' ontbreekt in de premisse "
+                f"'{weergave(premisse)}'; zonder middenterm in beide premissen "
+                "verbinden zij de uiterste termen niet",
+                "invalid_form_unnamed",
+            )
 
     if not any(_gedistribueerd(p, midden) for p in premissen):
         return (
@@ -319,6 +377,9 @@ class VormAnalyse:
     drogredenen: tuple[Drogreden, ...] = ()
     kandidaten: tuple[Kandidaat, ...] = ()
     ontbrekende_vormen: tuple[str, ...] = field(default=())
+    # Waar of de zoektocht naar mogelijk verzwegen premissen is overgeslagen.
+    # Een lege kandidatenlijst betekent dan niet "er is niets gevonden".
+    kandidaatzoektocht_overgeslagen: bool = False
 
 
 def _propositionele_drogredenen(
@@ -381,7 +442,7 @@ def _propositionele_kandidaten(
     het minst van de lezer.
     """
     atoomlijst = sorted(set().union(*(atomen(v) for v in [*premissen, conclusie])))
-    if not atoomlijst or len(atoomlijst) > MAX_ATOMEN:
+    if not atoomlijst or len(atoomlijst) > MAX_ATOMEN_KANDIDATEN:
         return []
     voldoende: list[dict[str, Any]] = []
     for kandidaat in _kandidaatvormen(atoomlijst):
@@ -456,7 +517,7 @@ def _categorische_kandidaten(
                 "predicate": gezegde,
             }
             geldig, _, _ = syllogisme_geldig([gegeven, kandidaat], conclusie)
-            if geldig:
+            if geldig and all(k.tekst != weergave(kandidaat) for k in gevonden):
                 gevonden.append(
                     Kandidaat(
                         vorm=kandidaat,
@@ -524,8 +585,8 @@ def analyseer(
     return VormAnalyse(
         status="not_testable",
         rationale=(
-            "niet formeel getoetst: de stap mengt propositionele en categorische vormen; "
-            "fase 1 toetst die combinatie niet"
+            "niet formeel getoetst: de stap mengt propositionele en categorische vormen. "
+            "Fase 1 toetst die combinatie niet; hieruit volgt niets over de geldigheid"
         ),
         toetssoort="geen",
     )
@@ -570,7 +631,10 @@ def _analyseer_propositioneel(
             toetssoort="propositioneel",
         )
 
-    drogredenen = tuple(_propositionele_drogredenen(premissen, conclusie))
+    # Eén stap krijgt hooguit één naam. Passen twee patronen, dan is dat één
+    # gebrek dat op twee manieren te beschrijven valt, geen twee gebreken.
+    benoemd = _propositionele_drogredenen(premissen, conclusie)
+    drogredenen = (benoemd[0],) if benoemd else ()
     if not drogredenen:
         drogredenen = (
             Drogreden(
@@ -579,15 +643,25 @@ def _analyseer_propositioneel(
                 "de stap heeft geen van de benoemde vormen",
             ),
         )
+    aantal_atomen = len(set().union(*(atomen(v) for v in [*premissen, conclusie])))
+    overgeslagen = aantal_atomen > MAX_ATOMEN_KANDIDATEN
+    rationale = (
+        "de conclusie volgt niet uit de premissen: er bestaat een toestand waarin alle "
+        "premissen waar zijn en de conclusie onwaar"
+    )
+    if overgeslagen:
+        rationale += (
+            ". De zoektocht naar mogelijk verzwegen premissen is niet uitgevoerd: de stap "
+            "bevat te veel losse termen. Dat er geen kandidaat wordt getoond, betekent hier "
+            "dus niet dat er geen is"
+        )
     return VormAnalyse(
         status="invalid",
-        rationale=(
-            "de conclusie volgt niet uit de premissen: er bestaat een toestand waarin alle "
-            "premissen waar zijn en de conclusie onwaar"
-        ),
+        rationale=rationale,
         toetssoort="propositioneel",
         drogredenen=drogredenen,
-        kandidaten=tuple(_propositionele_kandidaten(premissen, conclusie)),
+        kandidaten=() if overgeslagen else tuple(_propositionele_kandidaten(premissen, conclusie)),
+        kandidaatzoektocht_overgeslagen=overgeslagen,
     )
 
 
@@ -609,10 +683,22 @@ def _analyseer_categorisch(
     geldig, toelichting, drogreden = syllogisme_geldig(premissen, conclusie)
     if geldig:
         return VormAnalyse(status="valid", rationale=toelichting, toetssoort="categorisch")
-    drogredenen = (Drogreden(drogreden, toelichting),) if drogreden else ()
+    if drogreden is None:
+        # De vorm valt buiten wat fase 1 als syllogisme kan toetsen. Dat is geen
+        # oordeel over de geldigheid: een sluitende sorites van drie premissen is
+        # geldig, maar niet met deze toets vast te stellen. De motor bewijst geen
+        # gat en noemt hem daarom niet ongeldig.
+        return VormAnalyse(
+            status="not_testable",
+            rationale=(
+                "niet formeel getoetst: " + toelichting + ". Fase 1 toetst uitsluitend "
+                "syllogismen met twee premissen; hieruit volgt niets over de geldigheid"
+            ),
+            toetssoort="categorisch",
+        )
     return VormAnalyse(
         status="invalid",
         rationale=toelichting,
         toetssoort="categorisch",
-        drogredenen=drogredenen,
+        drogredenen=(Drogreden(drogreden, toelichting),),
     )
