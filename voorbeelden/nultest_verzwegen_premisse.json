@@ -1,0 +1,28 @@
+{
+  "_toelichting": "Nultest 3: waar een inferentie niet sluit, meldt de motor een mogelijk verzwegen premisse. i_vorm mist de brugpremisse en wordt via vormaanvulling gevonden; i_term levert geen vormen aan en wordt via termdekking gevonden.",
+  "schema_version": "1.0.0",
+  "submission": {"id": "nultest-verzwegen", "title": "Niet-sluitende stappen", "language": "nl"},
+  "profile": "leeg",
+  "claims": [
+    {"id": "c_vorm", "text": "Deze handeling is verplicht.", "form": {"kind": "atomic", "term": "verplicht"}},
+    {"id": "c_term", "text": "Deze handeling is verplicht voor iedereen die haar kan verrichten.",
+     "terms": ["verplicht", "kan_verrichten"]}
+  ],
+  "premises": [
+    {"id": "p_gebod", "text": "De tekst bevat een onvoorwaardelijk gebod tot deze handeling.",
+     "type": "revelation_text", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Voorbeeldtekst 1:1", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de tekst is onbetwist overgeleverd"},
+     "dalalah": {"label": "strong", "rationale": "handmatig ingevoerd: de bewoording is ondubbelzinnig een gebod"},
+     "form": {"kind": "atomic", "term": "onvoorwaardelijk_gebod"}},
+    {"id": "p_gebod2", "text": "De tekst bevat een onvoorwaardelijk gebod tot deze handeling.",
+     "type": "revelation_text", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Voorbeeldtekst 1:1", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de tekst is onbetwist overgeleverd"},
+     "terms": ["onvoorwaardelijk_gebod", "verplicht"]}
+  ],
+  "inferences": [
+    {"id": "i_vorm", "from": ["p_gebod"], "to": "c_vorm", "scheme": "deductive"},
+    {"id": "i_term", "from": ["p_gebod2"], "to": "c_term", "scheme": "deductive"}
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "_toelichting": "Kernregels per bouwspecificatie §4.2 en §5.1. Deze rijen zijn immutable=true en worden door databasetriggers beschermd tegen UPDATE en DELETE. Het bewijs van een kernregel is het zelfvernietigingsargument: het ontkennen van de regel maakt de ontkenning zelf onmogelijk. De motor verwijst per bevinding naar de sleutel van de kernregel die de bevinding draagt.",
+  "versie": "0.1.0",
+  "regels": [
+    {
+      "key": "non_contradictie",
+      "statement_nl": "Een propositie en haar ontkenning kunnen niet beide gelden in dezelfde betekenis, in hetzelfde opzicht en op hetzelfde moment.",
+      "statement_en": "A proposition and its negation cannot both hold in the same sense, the same respect and at the same time.",
+      "self_refutation_argument": "Wie de regel ontkent, moet zijn ontkenning onderscheiden van de bevestiging ervan. Dat onderscheid is precies wat de regel stelt. De ontkenning gebruikt dus de regel die zij ontkent en heft zichzelf op."
+    },
+    {
+      "key": "oordeel_vereist_begrip",
+      "statement_nl": "Een oordeel over een zaak vereist dat de zaak bepaald is. Over iets ongedefinieerds is geen oordeel mogelijk, ook geen ontkennend oordeel.",
+      "statement_en": "Judgement about a matter requires that the matter be determinate. No judgement, not even a negative one, is possible about something undefined.",
+      "self_refutation_argument": "Wie de regel ontkent, moet zeggen waarover hij haar ontkent. Zodra hij dat bepaalt, past hij de regel toe. Bepaalt hij het niet, dan heeft zijn ontkenning geen inhoud en ontkent zij niets."
+    },
+    {
+      "key": "zwakste_schakel",
+      "statement_nl": "Een conclusie kan niet zekerder zijn dan haar zwakste premisse of haar zwakste redeneerstap.",
+      "statement_en": "A conclusion cannot be more certain than its weakest premise or its weakest inferential step.",
+      "self_refutation_argument": "Wie de regel ontkent, stelt dat een conclusie zekerheid kan bezitten die haar dragers niet bezitten. Dan ontstaat zekerheid uit niets en is elke conclusie evengoed te dragen door willekeurige premissen, ook de ontkenning zelf. De ontkenning maakt haar eigen onderbouwing daarmee waardeloos."
+    },
+    {
+      "key": "vorm_versus_waarheid",
+      "statement_nl": "De geldigheid van de vorm van een redenering en de waarheid van haar premissen zijn onderscheiden. Een geldige vorm maakt een premisse niet waar, en een onware premisse maakt een vorm niet ongeldig.",
+      "statement_en": "The validity of an argument's form and the truth of its premises are distinct. A valid form does not make a premise true, and a false premise does not make a form invalid.",
+      "self_refutation_argument": "Wie het onderscheid ontkent, kan zijn eigen ontkenning niet verdedigen: elk verwijt van een vormfout valt dan samen met een verwijt van een onware premisse, en elk verweer tegen het een is een verweer tegen het ander. Zonder het onderscheid is geen enkele kritiek nog te richten, ook deze niet."
+    },
+    {
+      "key": "steun_en_bewijslast",
+      "statement_nl": "Elke bewering vereist steun, en de bewijslast moet expliciet aan een partij zijn toegewezen. Wélke toewijzing geldt, is geen kernregel maar een profielinstelling.",
+      "statement_en": "Every assertion requires support, and the burden of proof must be explicitly allocated. Which allocation applies is not a kernel rule but a profile setting.",
+      "self_refutation_argument": "Wie de regel ontkent, beweert iets zonder steun te hoeven geven. Dan is ook de tegenovergestelde bewering gratis en verliest de ontkenning elke voorrang op haar tegendeel. De ontkenning maakt zichzelf daarmee even goed en even slecht onderbouwd als wat zij bestrijdt."
+    }
+  ]
+}

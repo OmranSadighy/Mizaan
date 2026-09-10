@@ -1,0 +1,75 @@
+{
+  "_toelichting": "Kalibratie. Het onderwerp is een vehikel; getoetst wordt of een keten waarin elke schakel handmatig als 'certain' is aangeleverd en elke stap formeel sluit, ook 'certain' als uitkomst geeft. Let op de brugpremissen p_regel_gebod, p_regel_zuil en p_regel_ijma: dat een onvoorwaardelijk gebod op verplichting duidt, is een stelregel met eigen bewijs en geen kennis van de motor. Met nul qawa'id geladen moet die regel als expliciete premisse met eigen bron in de invoer staan, anders sluit de stap niet. Dat is precies wat de nultest wil aantonen.",
+  "schema_version": "1.0.0",
+  "submission": {"id": "kalibratie-gebed", "title": "Het gebed is verplicht", "language": "nl"},
+  "profile": "leeg",
+  "competence_level": "unrestricted",
+  "use_form": "assess",
+  "claims": [
+    {"id": "c_gebed", "text": "Het gebed is verplicht.", "form": {"kind": "atomic", "term": "gebed_is_verplicht"}}
+  ],
+  "premises": [
+    {"id": "p_koran", "text": "De Koran bevat het onvoorwaardelijke gebod het gebed te verrichten.",
+     "type": "revelation_text", "explicit": true,
+     "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Koran 2:43 en 4:103", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de tekst van de Koran is mutawatir overgeleverd"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de bewoording is een onvoorwaardelijke gebiedende vorm zonder tegenaanwijzing"},
+     "status": {"label": "muhkam", "opposition": "mutashabih"},
+     "form": {"kind": "atomic", "term": "onvoorwaardelijk_gebod_in_openbaring"}},
+    {"id": "p_regel_gebod", "text": "Een onvoorwaardelijk gebod in een openbaringstekst duidt op verplichting.",
+     "type": "consensus_claim", "explicit": true,
+     "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Aqeedah-grondslagentekst, hoofdstuk over de bronnen", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: als stelregel met eigen bron aangeleverd, niet door de motor gekend"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de formulering in de bron is ondubbelzinnig"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "onvoorwaardelijk_gebod_in_openbaring"}, "consequent": {"kind": "atomic", "term": "gebed_is_verplicht"}}},
+
+    {"id": "p_hadith", "text": "Overgeleverd is dat het gebed een van de zuilen van de islam is.",
+     "type": "transmitted_report", "explicit": true,
+     "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "al-Bukhari 8 en Muslim 16", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: in beide sahih-verzamelingen opgenomen en langs vele wegen overgeleverd"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de bewoording noemt het gebed uitdrukkelijk als zuil"},
+     "form": {"kind": "atomic", "term": "gebed_is_zuil"}},
+    {"id": "p_regel_zuil", "text": "Wat als zuil van de islam is aangewezen, is verplicht.",
+     "type": "consensus_claim", "explicit": true,
+     "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Aqeedah-grondslagentekst, hoofdstuk over de zuilen", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: als stelregel met eigen bron aangeleverd"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de formulering in de bron is ondubbelzinnig"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "gebed_is_zuil"}, "consequent": {"kind": "atomic", "term": "gebed_is_verplicht"}}},
+
+    {"id": "p_ijma", "text": "Er bestaat consensus dat het gebed verplicht is.",
+     "type": "consensus_claim", "explicit": true,
+     "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Aqeedah-grondslagentekst, hoofdstuk over de consensus", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: als onbetwiste consensus aangeleverd"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de consensus wordt in deze bewoording weergegeven"},
+     "form": {"kind": "atomic", "term": "consensus_over_verplichting"}},
+    {"id": "p_regel_ijma", "text": "Wat door consensus is vastgesteld, geldt.",
+     "type": "consensus_claim", "explicit": true,
+     "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Aqeedah-grondslagentekst, hoofdstuk over de consensus", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: als stelregel met eigen bron aangeleverd"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de formulering in de bron is ondubbelzinnig"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "consensus_over_verplichting"}, "consequent": {"kind": "atomic", "term": "gebed_is_verplicht"}}}
+  ],
+  "inferences": [
+    {"id": "i_koran", "from": ["p_koran", "p_regel_gebod"], "to": "c_gebed", "scheme": "deductive",
+     "critical_questions": [
+       {"template": "d2", "question": "Zijn alle premissen vastgesteld?", "status": "answered", "effect": "undermine", "toelichting": "beide premissen zijn met bron aangeleverd en als zeker gescoord"},
+       {"template": "d3", "question": "Zijn alle premissen expliciet gemaakt?", "status": "answered", "effect": "undercut", "toelichting": "de stelregel die gebod aan verplichting koppelt, staat als eigen premisse in de invoer"}
+     ]},
+    {"id": "i_hadith", "from": ["p_hadith", "p_regel_zuil"], "to": "c_gebed", "scheme": "deductive",
+     "critical_questions": [
+       {"template": "d2", "question": "Zijn alle premissen vastgesteld?", "status": "answered", "effect": "undermine", "toelichting": "beide premissen zijn met bron aangeleverd en als zeker gescoord"},
+       {"template": "d3", "question": "Zijn alle premissen expliciet gemaakt?", "status": "answered", "effect": "undercut", "toelichting": "de stelregel over de zuilen staat als eigen premisse in de invoer"}
+     ]},
+    {"id": "i_ijma", "from": ["p_ijma", "p_regel_ijma"], "to": "c_gebed", "scheme": "deductive",
+     "critical_questions": [
+       {"template": "d2", "question": "Zijn alle premissen vastgesteld?", "status": "answered", "effect": "undermine", "toelichting": "beide premissen zijn met bron aangeleverd en als zeker gescoord"},
+       {"template": "d3", "question": "Zijn alle premissen expliciet gemaakt?", "status": "answered", "effect": "undercut", "toelichting": "de stelregel over consensus staat als eigen premisse in de invoer"}
+     ]}
+  ]
+}

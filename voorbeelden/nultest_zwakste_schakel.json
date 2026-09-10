@@ -1,0 +1,30 @@
+{
+  "_toelichting": "Nultest 4: de zwakste schakel wordt aangewezen. Alle schakels zijn zeker behalve de dalalah van p_zwak; die is zwak en bepaalt het eindlabel.",
+  "schema_version": "1.0.0",
+  "submission": {"id": "nultest-zwakste", "title": "Zwakste schakel", "language": "nl"},
+  "profile": "leeg",
+  "claims": [
+    {"id": "c1", "text": "Het oordeel geldt.", "form": {"kind": "atomic", "term": "oordeel_geldt"}}
+  ],
+  "premises": [
+    {"id": "p_sterk", "text": "De bron is vastgesteld en zegt onmiskenbaar dit.",
+     "type": "transmitted_report", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Bron A, nr. 12", "verification_status": "verified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: overgeleverd langs vele onafhankelijke wegen"},
+     "dalalah": {"label": "certain", "rationale": "handmatig ingevoerd: de bewoording laat maar één lezing toe"},
+     "form": {"kind": "atomic", "term": "bron_zegt_dit"}},
+    {"id": "p_zwak", "text": "Wat de bron zegt, levert dit oordeel op.",
+     "type": "expert_testimony", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Bron B, deel 2, p. 40", "verification_status": "disputed"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de uitspraak staat vast in de bron"},
+     "dalalah": {"label": "weak", "rationale": "handmatig ingevoerd: de bewoording laat meerdere lezingen toe en de context wijst een andere kant op"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "bron_zegt_dit"}, "consequent": {"kind": "atomic", "term": "oordeel_geldt"}}}
+  ],
+  "inferences": [
+    {"id": "i1", "from": ["p_sterk", "p_zwak"], "to": "c1", "scheme": "deductive",
+     "critical_questions": [
+       {"template": "d2", "question": "Zijn alle premissen vastgesteld?", "status": "answered", "effect": "undermine"},
+       {"template": "d3", "question": "Zijn alle premissen expliciet gemaakt?", "status": "answered", "effect": "undercut"}
+     ]}
+  ]
+}

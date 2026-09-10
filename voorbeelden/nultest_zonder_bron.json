@@ -1,0 +1,23 @@
+{
+  "_toelichting": "Nultest 6: p_zonderbron noemt geen bron en heeft geen sub-premissen. De handmatig aangeleverde score wordt genegeerd en gemeld, en de claim krijgt 'onvoldoende bewijs'.",
+  "schema_version": "1.0.0",
+  "submission": {"id": "nultest-zonder-bron", "title": "Premisse zonder bron", "language": "nl"},
+  "profile": "leeg",
+  "claims": [
+    {"id": "c1", "text": "De stelling geldt.", "form": {"kind": "atomic", "term": "stelling_geldt"}}
+  ],
+  "premises": [
+    {"id": "p_metbron", "text": "Wat vaststaat, levert de stelling op.",
+     "type": "rational_intuition", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Bron C, §1", "verification_status": "verified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: de regel staat letterlijk in de bron"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "feit"}, "consequent": {"kind": "atomic", "term": "stelling_geldt"}}},
+    {"id": "p_zonderbron", "text": "Dit feit staat vast.",
+     "type": "transmitted_report", "provenance": {"kind": "submitted_by_user"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd zonder bronvermelding; deze score hoort genegeerd te worden"},
+     "form": {"kind": "atomic", "term": "feit"}}
+  ],
+  "inferences": [
+    {"id": "i1", "from": ["p_metbron", "p_zonderbron"], "to": "c1", "scheme": "deductive"}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "_toelichting": "Het lege profiel voor de nultest: nul qawa'id, geen premissetypen, geen plafonds, geen conflictvolgorde. burden_allocation staat op de standaardwaarde uit B1. figurative_reading_permitted is bewust null: elke booleaanse waarde is al een standpunt, en het lege profiel neemt geen standpunt in. Een bewerking die van dit veld afhangt terwijl het null is, faalt met een melding en valt niet terug op een standaardwaarde.",
+  "name": "leeg",
+  "version": "0.1.0",
+  "type_set": [],
+  "type_set_exhaustive": false,
+  "type_ceilings": {},
+  "qaida_set": [],
+  "competence_levels": [
+    {"name": "unrestricted", "qaida_set": []}
+  ],
+  "figurative_reading_permitted": null,
+  "conflict_order": [],
+  "burden_allocation": "claimant"
+}

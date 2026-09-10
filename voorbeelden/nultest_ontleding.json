@@ -1,0 +1,45 @@
+{
+  "_toelichting": "Nultest 2: een handmatig gestructureerde invoer wordt ontleed in claims, premissen en inferenties. Bevat een subconclusie: premisse p_sub beweert claim c_tussen, zodat de keten over twee claims loopt.",
+  "schema_version": "1.0.0",
+  "submission": {"id": "nultest-ontleding", "title": "Ontleding met subconclusie", "language": "nl"},
+  "profile": "leeg",
+  "competence_level": "unrestricted",
+  "use_form": "assess",
+  "claims": [
+    {"id": "c_tussen", "text": "De maatregel vermindert het aantal ongevallen.", "form": {"kind": "atomic", "term": "minder_ongevallen"}},
+    {"id": "c_eind", "text": "De maatregel is doeltreffend.", "form": {"kind": "atomic", "term": "doeltreffend"}}
+  ],
+  "premises": [
+    {"id": "p_meting", "text": "In de meetperiode daalde het aantal ongevallen op de betrokken wegvakken.",
+     "type": "empirical_study", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Rapport verkeersveiligheid 2024, tabel 3", "verification_status": "unverified"},
+     "thubut": {"label": "strong", "rationale": "handmatig ingevoerd: het rapport is openbaar en de meetreeks is compleet"},
+     "form": {"kind": "atomic", "term": "daling_gemeten"}},
+    {"id": "p_brug1", "text": "Een gemeten daling op de betrokken wegvakken telt als vermindering van ongevallen.",
+     "type": "rational_intuition", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Methodologische toelichting bij het rapport, §2", "verification_status": "unverified"},
+     "thubut": {"label": "strong", "rationale": "handmatig ingevoerd: de gelijkstelling staat in de methodologische toelichting"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "daling_gemeten"}, "consequent": {"kind": "atomic", "term": "minder_ongevallen"}}},
+    {"id": "p_sub", "text": "De maatregel vermindert het aantal ongevallen.",
+     "type": "empirical_study", "provenance": {"kind": "submitted_by_user"},
+     "asserts_claim": "c_tussen",
+     "form": {"kind": "atomic", "term": "minder_ongevallen"}},
+    {"id": "p_brug2", "text": "Een maatregel die het aantal ongevallen vermindert, is doeltreffend.",
+     "type": "rational_intuition", "provenance": {"kind": "submitted_by_user"},
+     "citation": {"source_ref": "Beleidskader doeltreffendheid, art. 2", "verification_status": "unverified"},
+     "thubut": {"label": "certain", "rationale": "handmatig ingevoerd: het beleidskader definieert doeltreffendheid zo"},
+     "form": {"kind": "conditional", "antecedent": {"kind": "atomic", "term": "minder_ongevallen"}, "consequent": {"kind": "atomic", "term": "doeltreffend"}}}
+  ],
+  "inferences": [
+    {"id": "i_tussen", "from": ["p_meting", "p_brug1"], "to": "c_tussen", "scheme": "deductive",
+     "critical_questions": [
+       {"template": "d2", "question": "Zijn alle premissen vastgesteld?", "status": "answered", "effect": "undermine", "toelichting": "beide premissen zijn met bron aangeleverd"},
+       {"template": "d3", "question": "Zijn alle premissen expliciet gemaakt?", "status": "answered", "effect": "undercut", "toelichting": "de brugpremisse is uitgeschreven"}
+     ]},
+    {"id": "i_eind", "from": ["p_sub", "p_brug2"], "to": "c_eind", "scheme": "deductive",
+     "critical_questions": [
+       {"template": "d2", "question": "Zijn alle premissen vastgesteld?", "status": "answered", "effect": "undermine", "toelichting": "p_sub steunt op de eerder berekende subconclusie"},
+       {"template": "d3", "question": "Zijn alle premissen expliciet gemaakt?", "status": "answered", "effect": "undercut", "toelichting": "de definitiepremisse is uitgeschreven"}
+     ]}
+  ]
+}
